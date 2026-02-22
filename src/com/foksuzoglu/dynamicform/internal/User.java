@@ -1,133 +1,188 @@
 package com.foksuzoglu.dynamicform.internal;
 
 import com.foksuzoglu.dynamicform.annotation.Detail;
+import com.foksuzoglu.dynamicform.annotation.Row;
 
 public class User {
 
 	// ---------- ROOT 10 FIELD ----------
 
+	@Row(header = "user.name")
 	@Detail(key = "user.name", row = 0, col = 0)
 	private String name;
 
+	@Row(header = "user.age")
 	@Detail(key = "user.age", row = 1, col = 0)
 	private int age;
 
+	@Row(header = "user.active")
 	@Detail(key = "user.active", row = 2, col = 0)
 	private boolean active;
 
+	@Row(header = "user.salary")
 	@Detail(key = "user.salary", row = 3, col = 0)
 	private double salary;
 
+	@Row(header = "user.email")
 	@Detail(key = "user.email", row = 4, col = 0)
 	private String email;
 
+	@Row(header = "user.phone")
 	@Detail(key = "user.phone", row = 5, col = 0)
 	private String phone;
 
+	@Row(header = "user.score")
 	@Detail(key = "user.score", row = 6, col = 0)
 	private int score;
 
+	@Row(header = "user.height")
 	@Detail(key = "user.height", row = 7, col = 0)
 	private double height;
 
+	@Row(header = "user.married")
 	@Detail(key = "user.married", row = 8, col = 0)
 	private boolean married;
 
+	@Row(header = "user.hasJob")
 	@Detail(key = "user.hasJob", row = 9, col = 0)
 	private boolean hasJob;
 
 	// ---------- INNER BLOCKS ----------
-
-	@Detail(key = "user.address", row = 10, col = 0)
 	private Address address;
-
-	@Detail(key = "user.company", row = 11, col = 0)
 	private Company company;
-
-	@Detail(key = "user.bank", row = 12, col = 0)
 	private Bank bank;
-
-	@Detail(key = "user.identity", row = 13, col = 0)
 	private Identity identity;
-
-	@Detail(key = "user.preferences", row = 14, col = 0)
 	private Preferences preferences;
-
-	@Detail(key = "user.security", row = 15, col = 0)
 	private Security security;
-
-	@Detail(key = "user.device", row = 16, col = 0)
 	private Device device;
-
-	@Detail(key = "user.social", row = 17, col = 0)
 	private Social social;
-
-	@Detail(key = "user.statistics", row = 18, col = 0)
 	private Statistics statistics;
 
 	public User() {
-		// TODO Auto-generated constructor stub
 	}
 
-	// ============================================================
-	// ===================== INNER CLASSES ========================
-	// ============================================================
+	@Override
+	public String toString() {
+		return "User [name=" + name + ", age=" + age + ", active=" + active + ", salary=" + salary + ", email=" + email
+				+ ", phone=" + phone + ", score=" + score + ", height=" + height + ", married=" + married + ", hasJob="
+				+ hasJob + ", \naddress=" + address.toString() + ", \ncompany=" + company.toString() + ", \nbank="
+				+ bank.toString() + ", \nidentity=" + identity.toString() + ", \npreferences=" + preferences.toString()
+				+ ", \nsecurity=" + security.toString() + ",\ndevice=" + device.toString() + ", \nsocial="
+				+ social.toString() + ",\n statistics=" + statistics.toString() + "]";
+	}
 
 }
 
+// ============================================================
+// ===================== INNER CLASSES ========================
+// ============================================================
+
 class Address {
+
+	@Row(header = "address.street")
 	@Detail(key = "address.street", row = 0, col = 0)
 	private String street;
+
+	@Row(header = "address.city")
 	@Detail(key = "address.city", row = 1, col = 0)
 	private String city;
+
+	@Row(header = "address.zip")
 	@Detail(key = "address.zip", row = 2, col = 0)
 	private String zip;
+
+	@Row(header = "address.country")
 	@Detail(key = "address.country", row = 3, col = 0)
 	private String country;
+
+	@Row(header = "address.building")
 	@Detail(key = "address.building", row = 4, col = 0)
 	private String building;
+
+	@Row(header = "address.floor")
 	@Detail(key = "address.floor", row = 5, col = 0)
 	private int floor;
+
+	@Row(header = "address.apartment")
 	@Detail(key = "address.apartment", row = 6, col = 0)
 	private int apartment;
+
+	@Row(header = "address.region")
 	@Detail(key = "address.region", row = 7, col = 0)
 	private String region;
+
+	@Row(header = "address.longitude")
 	@Detail(key = "address.longitude", row = 8, col = 0)
 	private double longitude;
+
+	@Row(header = "address.latitude")
 	@Detail(key = "address.latitude", row = 9, col = 0)
 	private double latitude;
 
 	public Address() {
-		// TODO Auto-generated constructor stub
+	}
+
+	@Override
+	public String toString() {
+		return "Address [street=" + street + ", city=" + city + ", zip=" + zip + ", country=" + country + ", building="
+				+ building + ", floor=" + floor + ", apartment=" + apartment + ", region=" + region + ", longitude="
+				+ longitude + ", latitude=" + latitude + "]";
 	}
 
 }
 
 class Company {
+
+	@Row(header = "company.name")
 	@Detail(key = "company.name", row = 0, col = 0)
 	private String name;
+
+	@Row(header = "company.department")
 	@Detail(key = "company.department", row = 1, col = 0)
 	private String department;
+
+	@Row(header = "company.title")
 	@Detail(key = "company.title", row = 2, col = 0)
 	private String title;
+
+	@Row(header = "company.startYear")
 	@Detail(key = "company.startYear", row = 3, col = 0)
 	private int startYear;
+
+	@Row(header = "company.employeeId")
 	@Detail(key = "company.employeeId", row = 4, col = 0)
 	private String employeeId;
+
+	@Row(header = "company.level")
 	@Detail(key = "company.level", row = 5, col = 0)
 	private int level;
+
+	@Row(header = "company.office")
 	@Detail(key = "company.office", row = 6, col = 0)
 	private String office;
+
+	@Row(header = "company.extension")
 	@Detail(key = "company.extension", row = 7, col = 0)
 	private int extension;
+
+	@Row(header = "company.active")
 	@Detail(key = "company.active", row = 8, col = 0)
 	private boolean active;
+
+	@Row(header = "company.bonus")
 	@Detail(key = "company.bonus", row = 9, col = 0)
 	private double bonus;
 
 	public Company() {
-		// TODO Auto-generated constructor stub
 	}
+
+	@Override
+	public String toString() {
+		return "Company [name=" + name + ", department=" + department + ", title=" + title + ", startYear=" + startYear
+				+ ", employeeId=" + employeeId + ", level=" + level + ", office=" + office + ", extension=" + extension
+				+ ", active=" + active + ", bonus=" + bonus + "]";
+	}
+
 }
 
 class Bank {
@@ -155,6 +210,14 @@ class Bank {
 	public Bank() {
 		// TODO Auto-generated constructor stub
 	}
+
+	@Override
+	public String toString() {
+		return "Bank [name=" + name + ", iban=" + iban + ", swift=" + swift + ", accountNo=" + accountNo + ", branch="
+				+ branch + ", balance=" + balance + ", currency=" + currency + ", active=" + active + ", creditScore="
+				+ creditScore + ", riskLevel=" + riskLevel + "]";
+	}
+
 }
 
 class Identity {
@@ -182,6 +245,14 @@ class Identity {
 	public Identity() {
 		// TODO Auto-generated constructor stub
 	}
+
+	@Override
+	public String toString() {
+		return "Identity [tc=" + tc + ", passport=" + passport + ", birthPlace=" + birthPlace + ", birthYear="
+				+ birthYear + ", motherName=" + motherName + ", fatherName=" + fatherName + ", gender=" + gender
+				+ ", serial=" + serial + ", issueYear=" + issueYear + ", nationality=" + nationality + "]";
+	}
+
 }
 
 class Preferences {
@@ -209,6 +280,14 @@ class Preferences {
 	public Preferences() {
 		// TODO Auto-generated constructor stub
 	}
+
+	@Override
+	public String toString() {
+		return "Preferences [theme=" + theme + ", language=" + language + ", notifications=" + notifications
+				+ ", darkMode=" + darkMode + ", autoSave=" + autoSave + ", fontSize=" + fontSize + ", layout=" + layout
+				+ ", timezone=" + timezone + ", volume=" + volume + ", privacy=" + privacy + "]";
+	}
+
 }
 
 class Security {
@@ -236,6 +315,14 @@ class Security {
 	public Security() {
 		// TODO Auto-generated constructor stub
 	}
+
+	@Override
+	public String toString() {
+		return "Security [username=" + username + ", password=" + password + ", twoFactor=" + twoFactor + ", pin=" + pin
+				+ ", recoveryEmail=" + recoveryEmail + ", locked=" + locked + ", failedAttempts=" + failedAttempts
+				+ ", lastLoginYear=" + lastLoginYear + ", role=" + role + ", enabled=" + enabled + "]";
+	}
+
 }
 
 class Device {
@@ -263,6 +350,14 @@ class Device {
 	public Device() {
 		// TODO Auto-generated constructor stub
 	}
+
+	@Override
+	public String toString() {
+		return "Device [model=" + model + ", os=" + os + ", version=" + version + ", ip=" + ip + ", mac=" + mac
+				+ ", storage=" + storage + ", ram=" + ram + ", cpuCores=" + cpuCores + ", active=" + active
+				+ ", serial=" + serial + "]";
+	}
+
 }
 
 class Social {
@@ -290,6 +385,14 @@ class Social {
 	public Social() {
 		// TODO Auto-generated constructor stub
 	}
+
+	@Override
+	public String toString() {
+		return "Social [facebook=" + facebook + ", twitter=" + twitter + ", linkedin=" + linkedin + ", instagram="
+				+ instagram + ", github=" + github + ", youtube=" + youtube + ", followers=" + followers
+				+ ", following=" + following + ", posts=" + posts + ", verified=" + verified + "]";
+	}
+
 }
 
 class Statistics {
@@ -317,4 +420,13 @@ class Statistics {
 	public Statistics() {
 		// TODO Auto-generated constructor stub
 	}
+
+	@Override
+	public String toString() {
+		return "Statistics [loginCount=" + loginCount + ", purchaseCount=" + purchaseCount + ", lastYearScore="
+				+ lastYearScore + ", currentYearScore=" + currentYearScore + ", rank=" + rank + ", points=" + points
+				+ ", reputation=" + reputation + ", badges=" + badges + ", reviews=" + reviews + ", rating=" + rating
+				+ "]";
+	}
+
 }

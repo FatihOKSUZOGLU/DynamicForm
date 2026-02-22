@@ -2,6 +2,8 @@ package com.foksuzoglu.dynamicform.api;
 
 import javax.swing.JScrollPane;
 
+import com.foksuzoglu.dynamicform.validation.ValidationResult;
+
 /**
  * Generic dynamic form abstraction.
  *
@@ -34,7 +36,7 @@ import javax.swing.JScrollPane;
  *
  * @param <T> the model type represented by this form
  */
-public interface DynamicForm<T> {
+public interface IDynamicDetail<T> {
 
 	/**
 	 * Returns the Swing JScrollPane containing the generated form UI.

@@ -25,18 +25,20 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 import com.foksuzoglu.dynamicform.annotation.Detail;
-import com.foksuzoglu.dynamicform.api.DynamicForm;
+import com.foksuzoglu.dynamicform.api.IDynamicDetail;
 import com.foksuzoglu.dynamicform.api.LanguageProvider;
-import com.foksuzoglu.dynamicform.api.ValidationMessageResolver;
-import com.foksuzoglu.dynamicform.api.ValidationResult;
 import com.foksuzoglu.dynamicform.model.FieldMeta;
 import com.foksuzoglu.dynamicform.provider.FieldComponentProvider;
 import com.foksuzoglu.dynamicform.provider.FieldComponentRegistry;
+import com.foksuzoglu.dynamicform.validation.ValidationMessageResolver;
+import com.foksuzoglu.dynamicform.validation.ValidationResult;
 
-class DynamicFormImpl<T> implements DynamicForm<T> {
+class DynamicDetailImpl<T> implements IDynamicDetail<T> {
 	public enum FormMode {
 		EDIT, READ_ONLY
 	}
+
+	private T current;
 
 	private final Class<T> clazz;
 	private JPanel panel;
@@ -50,7 +52,7 @@ class DynamicFormImpl<T> implements DynamicForm<T> {
 
 	private final LanguageProvider languageProvider;
 
-	public DynamicFormImpl(Class<T> clazz, FormMode mode, LanguageProvider languageProvider,
+	public DynamicDetailImpl(Class<T> clazz, FormMode mode, LanguageProvider languageProvider,
 			ValidationMessageResolver validationResolver) {
 
 		this.clazz = clazz;
@@ -74,7 +76,7 @@ class DynamicFormImpl<T> implements DynamicForm<T> {
 		panel.removeAll(); // rebuild için önemli
 		fieldComponentMap.clear();
 
-		List<FieldMeta> metas = FormMetadataCache.getMetadata(clazz);
+		List<FieldMeta> metas = AnnotationFieldMetaCache.getMetadata(clazz, Detail.class);
 
 		// Row + Col sıralama (garanti)
 		metas.sort(Comparator.comparingInt(FieldMeta::getRow).thenComparingInt(FieldMeta::getCol));
@@ -294,6 +296,10 @@ class DynamicFormImpl<T> implements DynamicForm<T> {
 	@Override
 	public T getData() {
 
+		if (!editable && this.current != null) {
+			return this.current;
+		}
+
 		ValidationResult result = validate();
 
 		if (!result.isValid()) {
@@ -304,26 +310,51 @@ class DynamicFormImpl<T> implements DynamicForm<T> {
 
 		try {
 
-			T instance = clazz.getDeclaredConstructor().newInstance();
+			T instance = this.current != null ? this.current : clazz.getDeclaredConstructor().newInstance();
 
-			for (Map.Entry<Field, JComponent> entry : fieldComponentMap.entrySet()) {
-
-				Field field = entry.getKey();
-				JComponent comp = entry.getValue();
-
-				field.setAccessible(true);
-
-				Object raw = extractValue(comp);
-				Object converted = convert(field, raw);
-
-				field.set(instance, converted);
-			}
+			fillObject(instance, clazz);
 
 			return instance;
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
+		}
+	}
+
+	private void fillObject(Object target, Class<?> type) throws Exception {
+
+		for (Field field : type.getDeclaredFields()) {
+
+			if (!field.isAnnotationPresent(Detail.class)) {
+				continue;
+			}
+
+			field.setAccessible(true);
+
+			if (isSimpleType(field.getType())) {
+
+				JComponent comp = fieldComponentMap.get(field);
+
+				if (comp != null) {
+					Object raw = extractValue(comp);
+					Object converted = convert(field, raw);
+					field.set(target, converted);
+				}
+
+			} else {
+
+				// 🔥 NESTED OBJECT
+				Object nested = field.get(target);
+
+				if (nested == null) {
+					nested = field.getType().getDeclaredConstructor().newInstance();
+					field.set(target, nested);
+				}
+
+				// 🔥 Recursive call
+				fillObject(nested, field.getType());
+			}
 		}
 	}
 
@@ -336,6 +367,7 @@ class DynamicFormImpl<T> implements DynamicForm<T> {
 		if (data == null) {
 			return;
 		}
+		this.current = data;
 		setDataRecursive(data);
 	}
 
