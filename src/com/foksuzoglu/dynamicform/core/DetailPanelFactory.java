@@ -1,14 +1,14 @@
 package com.foksuzoglu.dynamicform.core;
 
-import com.foksuzoglu.dynamicform.api.DynamicForm;
+import com.foksuzoglu.dynamicform.api.IDynamicDetail;
 import com.foksuzoglu.dynamicform.api.LanguageProvider;
-import com.foksuzoglu.dynamicform.api.ValidationMessageResolver;
-import com.foksuzoglu.dynamicform.core.DynamicFormImpl.FormMode;
+import com.foksuzoglu.dynamicform.core.DynamicDetailImpl.FormMode;
 import com.foksuzoglu.dynamicform.validation.DefaultValidationMessageResolver;
+import com.foksuzoglu.dynamicform.validation.ValidationMessageResolver;
 
-public final class FormPanelFactory {
+public final class DetailPanelFactory {
 
-	private FormPanelFactory() {
+	private DetailPanelFactory() {
 	}
 
 	public static <T> Builder<T> builder(Class<T> clazz) {
@@ -51,7 +51,7 @@ public final class FormPanelFactory {
 			return this;
 		}
 
-		public DynamicForm<T> build() {
+		public IDynamicDetail<T> build() {
 
 			if (languageProvider == null) {
 				languageProvider = key -> key;
@@ -61,7 +61,7 @@ public final class FormPanelFactory {
 				validationResolver = new DefaultValidationMessageResolver(languageProvider);
 			}
 
-			return new DynamicFormImpl<>(clazz, mode, languageProvider, validationResolver);
+			return new DynamicDetailImpl<>(clazz, mode, languageProvider, validationResolver);
 		}
 	}
 }

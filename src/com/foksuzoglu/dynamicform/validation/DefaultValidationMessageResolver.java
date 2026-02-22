@@ -3,7 +3,6 @@ package com.foksuzoglu.dynamicform.validation;
 import java.util.Map;
 
 import com.foksuzoglu.dynamicform.api.LanguageProvider;
-import com.foksuzoglu.dynamicform.api.ValidationMessageResolver;
 
 public class DefaultValidationMessageResolver implements ValidationMessageResolver {
 

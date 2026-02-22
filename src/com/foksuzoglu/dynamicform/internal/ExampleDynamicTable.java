@@ -12,12 +12,13 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import com.foksuzoglu.dynamicform.annotation.Detail;
-import com.foksuzoglu.dynamicform.api.DynamicForm;
-import com.foksuzoglu.dynamicform.core.FormPanelFactory;
+import com.foksuzoglu.dynamicform.api.IDynamicPanel;
+import com.foksuzoglu.dynamicform.core.DynamicPanelFactory;
 
-public class Example extends JFrame {
+public class ExampleDynamicTable extends JFrame {
 
-	private DynamicForm<User> form; // lazy
+	private static final int OBJ_SIZE = 100;
+	private IDynamicPanel<User> form; // lazy
 	private JButton createButton; // lazy
 	private JButton randomButton; // lazy
 
@@ -28,7 +29,7 @@ public class Example extends JFrame {
 
 	private final Random random = new Random();
 
-	public Example() {
+	public ExampleDynamicTable() {
 		super("Dynamic Form Demo");
 		initFrame();
 		initUI();
@@ -58,7 +59,6 @@ public class Example extends JFrame {
 
 			bottom.add(getRandomButton(), BorderLayout.WEST);
 			bottom.add(getResetButton(), BorderLayout.NORTH);
-			bottom.add(getToggleButton(), BorderLayout.CENTER);
 			bottom.add(getCreateButton(), BorderLayout.EAST);
 
 			mainPanel.add(bottom, BorderLayout.SOUTH);
@@ -68,34 +68,23 @@ public class Example extends JFrame {
 
 	// ---------------- LAZY FORM ----------------
 
-	private JButton getToggleButton() {
-		if (readOnlyButton == null) {
-			readOnlyButton = new JButton("Toggle ReadOnly");
-			readOnlyButton.addActionListener(e -> {
-				form.setEditable(false);
-			});
-
-		}
-		return readOnlyButton;
-	}
-
 	private JButton getResetButton() {
 
 		if (resetButton == null) {
 
-			resetButton = new JButton("Reset");
+			resetButton = new JButton("Clear");
 
 			resetButton.addActionListener(e -> {
-				getForm().reset();
+				getForm().clear();
 			});
 		}
 
 		return resetButton;
 	}
 
-	private DynamicForm<User> getForm() {
+	private IDynamicPanel<User> getForm() {
 		if (form == null) {
-			form = FormPanelFactory.builder(User.class).editable().build();
+			form = DynamicPanelFactory.builder(User.class).build();
 
 		}
 		return form;
@@ -107,17 +96,18 @@ public class Example extends JFrame {
 
 		if (createButton == null) {
 
-			createButton = new JButton("Create");
+			createButton = new JButton("SelectedSHow");
 
 			createButton.addActionListener(e -> {
 
-				User user = getForm().getData();
+				User user = getForm().getSelecedData();
 
 				if (user == null) {
 					return; // validation hatası
 				}
 
-				JOptionPane.showMessageDialog(this, user.toString(), "Created Object", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(this, user.toString(), "Selected Object",
+						JOptionPane.INFORMATION_MESSAGE);
 			});
 		}
 
@@ -134,9 +124,12 @@ public class Example extends JFrame {
 
 			randomButton.addActionListener(e -> {
 
-				User randomUser = generateRandomUser();
+				for (int i = 0; i < OBJ_SIZE; i++) {
+					User randomUser = generateRandomUser();
 
-				getForm().setData(randomUser);
+					getForm().addData(randomUser);
+
+				}
 			});
 		}
 
@@ -165,16 +158,16 @@ public class Example extends JFrame {
 
 		for (Field field : type.getDeclaredFields()) {
 
-			if (!field.isAnnotationPresent(Detail.class)) {
-				continue;
-			}
-
 			field.setAccessible(true);
 
 			Class<?> fieldType = field.getType();
 			Object value;
 
 			if (isSimpleType(fieldType)) {
+				if (!field.isAnnotationPresent(Detail.class)) {
+					continue;
+				}
+
 				value = generateSimpleValue(fieldType);
 			} else {
 				value = generateObject(fieldType);
@@ -283,7 +276,7 @@ public class Example extends JFrame {
 	public static void main(String[] args) {
 
 		SwingUtilities.invokeLater(() -> {
-			new Example().setVisible(true);
+			new ExampleDynamicTable().setVisible(true);
 		});
 	}
 }

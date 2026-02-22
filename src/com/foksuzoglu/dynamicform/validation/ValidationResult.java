@@ -1,4 +1,4 @@
-package com.foksuzoglu.dynamicform.api;
+package com.foksuzoglu.dynamicform.validation;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
