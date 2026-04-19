@@ -180,7 +180,6 @@ public class FormDataBinder {
 
 			try {
 				Object val = f.get(obj);
-				System.err.println(f.getName());
 				JComponent comp = findComponentByFieldName(panel, f.getName());
 
 				if (comp != null) {
