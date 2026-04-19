@@ -20,15 +20,13 @@ public class ComponentValueAccessor {
 			// 🔥 1. LIST (EN BAŞTA OLMALI)
 			// =====================================================
 			if (comp instanceof ListPanel) {
-
 				ListPanel listPanel = (ListPanel) comp;
 
 				List<Object> list = new ArrayList<>();
 
-				// ⚠️ generic type'ı dışardan vermen daha doğru olur
-				Class<?> genericType = targetType;
+				Class<?> genericType = listPanel.getGenericType();
 
-				for (Component wrapper : listPanel.getComponents()) {
+				for (Component wrapper : listPanel.getPanelList().getComponents()) {
 
 					if (!(wrapper instanceof JPanel)) {
 						continue;
@@ -40,7 +38,8 @@ public class ComponentValueAccessor {
 
 						if (inner instanceof JComponent) {
 
-							Object val = getValue((JComponent) inner, genericType);
+							Object raw = getValue((JComponent) inner, genericType);
+							Object val = convert(genericType, raw);
 
 							if (val != null) {
 								list.add(val);
@@ -54,15 +53,15 @@ public class ComponentValueAccessor {
 
 			// ---------------- SIMPLE ----------------
 			if (comp instanceof JTextField) {
-				return ((JTextField) comp).getText();
+				return convert(targetType, ((JTextField) comp).getText());
 			}
 
 			if (comp instanceof JCheckBox) {
-				return ((JCheckBox) comp).isSelected();
+				return convert(targetType, ((JCheckBox) comp).isSelected());
 			}
 
 			if (comp instanceof JComboBox) {
-				return ((JComboBox<?>) comp).getSelectedItem();
+				return convert(targetType, ((JComboBox<?>) comp).getSelectedItem());
 			}
 
 			// ---------------- PANEL → OBJECT ----------------
@@ -93,22 +92,22 @@ public class ComponentValueAccessor {
 						Field field = targetType.getDeclaredField(name);
 						field.setAccessible(true);
 
-						Object value;
+						Object value, converted;
 
 						if (ReflectionUtil.isSimpleType(field.getType())) {
 
 							value = getValue(jc, field.getType());
-							value = convert(field, value);
 
 						} else {
 
 							value = getValue(jc, field.getType());
 						}
 
-						field.set(instance, value);
+						converted = convert(field.getType(), value);
+						field.set(instance, converted);
 
-					} catch (NoSuchFieldException ignore) {
-						// component name eşleşmezse skip
+					} catch (NoSuchFieldException e) {
+						e.printStackTrace();
 					}
 				}
 
@@ -144,19 +143,19 @@ public class ComponentValueAccessor {
 				Field field = parent.getClass().getDeclaredField(name);
 				field.setAccessible(true);
 
-				Object value;
+				Object value, converted;
 
 				if (ReflectionUtil.isSimpleType(field.getType())) {
 
 					value = getValue(jc, field.getType());
-					value = convert(field, value);
+					converted = convert(field.getType(), value);
 
 				} else {
 
-					value = getValue(jc, field.getType());
+					converted = getValue(jc, field.getType());
 				}
 
-				field.set(parent, value);
+				field.set(parent, converted);
 
 			} catch (Exception ignore) {
 			}
@@ -197,73 +196,55 @@ public class ComponentValueAccessor {
 		return null;
 	}
 
-	private static Object convert(Field field, Object raw) {
+	private static Object convert(Class<?> type, Object raw) {
 
-		Class<?> type = field.getType();
-
-		// null kontrolü
 		if (raw == null) {
 			return getDefaultValue(type);
 		}
 
 		String value = raw.toString().trim();
 
-		// boş string kontrolü
 		if (value.isEmpty()) {
 			return getDefaultValue(type);
 		}
 
-		// String
 		if (type == String.class) {
 			return value;
 		}
 
-		// Integer
 		if (type == int.class || type == Integer.class) {
 			return Integer.parseInt(value);
 		}
 
-		// Double
 		if (type == double.class || type == Double.class) {
 			return Double.parseDouble(value);
 		}
 
-		// Long
 		if (type == long.class || type == Long.class) {
 			return Long.parseLong(value);
 		}
 
-		// Float
 		if (type == float.class || type == Float.class) {
 			return Float.parseFloat(value);
 		}
 
-		// Short
-		if (type == short.class || type == Short.class) {
-			return Short.parseShort(value);
-		}
-
-		// Byte
-		if (type == byte.class || type == Byte.class) {
-			return Byte.parseByte(value);
-		}
-
-		// Boolean
 		if (type == boolean.class || type == Boolean.class) {
 			return Boolean.parseBoolean(value);
 		}
 
-		// Char
-		if (type == char.class || type == Character.class) {
-			return value.charAt(0);
+		if (type == short.class || type == Short.class) {
+			return Short.parseShort(value);
 		}
 
-		// Enum
+		if (type == byte.class || type == Byte.class) {
+			return Byte.parseByte(value);
+		}
+
 		if (type.isEnum()) {
 			return Enum.valueOf((Class<Enum>) type, value);
 		}
 
-		throw new IllegalArgumentException("Unsupported type: " + type.getName());
+		throw new IllegalArgumentException("Unsupported type: " + type);
 	}
 
 	public static void setValue(JComponent comp, Object value) {

@@ -18,74 +18,6 @@ import com.foksuzoglu.dynamicform.annotation.Detail;
 import com.foksuzoglu.dynamicform.model.FieldMeta;
 
 public class FormDataBinder {
-//
-//	public static void bind(Object obj, Map<Field, JComponent> fieldMap, Function<Field, FieldMeta> metaProvider,
-//			BiFunction<FieldMeta, Object, RowPanel> listItemFactory) {
-//
-//		if (obj == null) {
-//			return;
-//		}
-//
-//		Class<?> clazz = obj.getClass();
-//
-//		for (Field field : clazz.getDeclaredFields()) {
-//
-//			field.setAccessible(true);
-//
-//			try {
-//				Object value = field.get(obj);
-//
-//				// =========================
-//				// 1. LIST HANDLING
-//				// =========================
-//				if (value instanceof List) {
-//
-//					List<?> list = (List<?>) value;
-//
-//					JComponent comp = fieldMap.get(field);
-//
-//					if (!(comp instanceof ListPanel)) {
-//						continue;
-//					}
-//
-//					ListPanel listPanel = (ListPanel) comp;
-//					listPanel.clear();
-//
-//					FieldMeta meta = metaProvider.apply(field);
-//
-//					for (Object item : list) {
-//
-//						RowPanel row = listItemFactory.apply(meta, item);
-//
-//						bindObjectToRow(item, row);
-//
-//						listPanel.add(wrap(row));
-//					}
-//
-//					continue;
-//				}
-//
-//				// =========================
-//				// 2. SIMPLE FIELD
-//				// =========================
-//				JComponent comp = fieldMap.get(field);
-//
-//				if (comp != null && isSimple(field.getType())) {
-//					ComponentValueAccessor.setValue(comp, value);
-//				}
-//
-//				// =========================
-//				// 3. NESTED OBJECT
-//				// =========================
-//				if (value != null && !isSimple(field.getType()) && !(value instanceof List)) {
-//					bind(value, fieldMap, metaProvider, listItemFactory);
-//				}
-//
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//			}
-//		}
-//	}
 
 	public static void bind(Object obj, Map<Field, JComponent> fieldMap, PanelBuilderUtil builderUtil) {
 
@@ -346,5 +278,32 @@ public class FormDataBinder {
 
 		return type.isPrimitive() || type == String.class || Number.class.isAssignableFrom(type)
 				|| type == Boolean.class || type == Character.class || type.isEnum();
+	}
+
+	public static void extract(Object obj, Map<Field, JComponent> fieldMap) {
+
+		Class<?> clazz = obj.getClass();
+
+		for (Field field : clazz.getDeclaredFields()) {
+
+			field.setAccessible(true);
+
+			try {
+
+				JComponent comp = fieldMap.get(field);
+				if (comp == null || ReflectionUtil.isListType(field.getType())) {
+					continue;
+				}
+
+				Object value = ComponentValueAccessor.getValue(comp, field.getType());
+
+				if (value != null) {
+					field.set(obj, value);
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

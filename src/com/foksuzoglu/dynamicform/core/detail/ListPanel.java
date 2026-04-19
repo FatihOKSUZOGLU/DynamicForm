@@ -14,13 +14,25 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
 public class ListPanel extends JPanel {
+	private static final int MAX_VISIBLE_HEIGHT = 300;
 	private JButton btnNewButton;
 	private JScrollPane scrollPane;
 	private JPanel panelList;
 
-	public ListPanel(String title) {
-		setPreferredSize(new Dimension(400, 200));
+	private Class<?> genericType;
+
+	public void setGenericType(Class<?> type) {
+		this.genericType = type;
+	}
+
+	public Class<?> getGenericType() {
+		return genericType;
+	}
+
+	public ListPanel(String title, Class<?> genericType) {
+		setPreferredSize(new Dimension(400, 50));
 		setBorder(new TitledBorder(null, title, TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		this.genericType = genericType;
 		initGUI();
 	}
 
@@ -70,20 +82,33 @@ public class ListPanel extends JPanel {
 
 	public void add(JComponent comp) {
 		getPanelList().add(comp);
-		getPanelList().revalidate();
-		getPanelList().repaint();
+		heightCheck();
+	}
+
+	private void heightCheck() {
+		int contentHeight = getPanelList().getPreferredSize().height;
+
+		int newHeight = Math.min(contentHeight + 50, MAX_VISIBLE_HEIGHT);
+
+		Dimension size = new Dimension(getWidth(), newHeight);
+
+		setPreferredSize(size);
+		setMinimumSize(size);
+		setMaximumSize(new Dimension(Integer.MAX_VALUE, newHeight));
+
+		revalidate();
+		repaint();
+
 	}
 
 	public void remove(JComponent comp) {
 		getPanelList().remove(comp);
-		getPanelList().revalidate();
-		getPanelList().repaint();
+		heightCheck();
 	}
 
 	public void clear() {
 		getPanelList().removeAll();
-		getPanelList().revalidate();
-		getPanelList().repaint();
+		heightCheck();
 
 	}
 }

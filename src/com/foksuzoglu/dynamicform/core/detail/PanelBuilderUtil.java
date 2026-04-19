@@ -1,6 +1,7 @@
 package com.foksuzoglu.dynamicform.core.detail;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -42,7 +43,6 @@ public class PanelBuilderUtil {
 
 	public void buildPane(DetailPane detailPane, List<FieldMeta> metas) {
 		for (FieldMeta meta : metas) {
-			Field field = meta.getField();
 			JComponent comp = getComp(meta);
 			detailPane.add(comp, meta);
 		}
@@ -106,7 +106,7 @@ public class PanelBuilderUtil {
 
 	public ListPanel createListPanel(FieldMeta meta) {
 
-		ListPanel listPanel = new ListPanel(languageProvider.getText(meta.getKey()));
+		ListPanel listPanel = new ListPanel(languageProvider.getText(meta.getKey()), meta.getField().getType());
 		listPanel.getBtnNewButton().addActionListener(e -> {
 			RowPanel itemPanel = createListItemPanel(meta);
 			JPanel wrapper = new JPanel();
@@ -118,8 +118,7 @@ public class PanelBuilderUtil {
 			listPanel.add(wrapper);
 			itemPanel.getBtnRemove().addActionListener(event -> {
 				listPanel.remove(wrapper); // 🔥 HEPSİ SİLİNİR
-				listPanel.revalidate();
-				listPanel.repaint();
+
 			});
 		});
 
@@ -199,6 +198,7 @@ public class PanelBuilderUtil {
 			if (provider.supports(fieldMeta.getField())) {
 				JComponent comp = provider.create(fieldMeta);
 				comp.setName(fieldMeta.getField().getName()); // 🔥 ŞART
+				fieldComponentMap.put(fieldMeta.getField(), comp);
 				return comp;
 			}
 		}
@@ -214,18 +214,41 @@ public class PanelBuilderUtil {
 
 	void applyEditableState(Map<Field, JComponent> fieldComponentMap, boolean editable) {
 		for (JComponent comp : fieldComponentMap.values()) {
-
-			if (comp instanceof JTextField) {
-				((JTextField) comp).setEditable(editable);
-			} else if (comp instanceof JCheckBox) {
-				comp.setEnabled(editable);
-			} else if (comp instanceof JComboBox) {
-				comp.setEnabled(editable);
-			} else {
-				comp.setEnabled(editable); // fallback
-			}
+			setReadonlyRecursive(comp, !editable);
 		}
 
+	}
+
+	public static void setReadonlyRecursive(Component comp, boolean readonly) {
+
+		if (comp instanceof JTextField) {
+			JTextField tf = (JTextField) comp;
+			tf.setEditable(!readonly);
+			tf.setEnabled(true);
+		}
+
+		else if (comp instanceof JCheckBox) {
+			JCheckBox cb = (JCheckBox) comp;
+			cb.setEnabled(!readonly);
+		}
+
+		else if (comp instanceof JComboBox) {
+			JComboBox<?> cb = (JComboBox<?>) comp;
+			cb.setEnabled(!readonly);
+		}
+
+		else {
+			comp.setEnabled(!readonly);
+		}
+
+		if (comp instanceof java.awt.Container) {
+
+			java.awt.Container container = (java.awt.Container) comp;
+
+			for (Component child : container.getComponents()) {
+				setReadonlyRecursive(child, readonly);
+			}
+		}
 	}
 
 }

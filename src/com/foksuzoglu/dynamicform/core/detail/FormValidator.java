@@ -30,7 +30,7 @@ public class FormValidator {
 			JComponent comp = entry.getValue();
 
 			Detail meta = field.getAnnotation(Detail.class);
-			if (meta == null) {
+			if (meta == null || ReflectionUtil.isListType(field.getType())) {
 				continue;
 			}
 

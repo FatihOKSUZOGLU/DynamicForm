@@ -79,20 +79,26 @@ class DynamicDetailImpl2<T> implements IDynamicDetail<T> {
 
 	@Override
 	public T getData() {
+
 		if (!editable && this.current != null) {
 			return this.current;
 		}
+
 		ValidationResult result = validate();
+
 		if (!result.isValid()) {
 			String message = String.join("\n", result.getErrors().values());
 			JOptionPane.showMessageDialog(getPanel(), message, "Validation Error", JOptionPane.ERROR_MESSAGE);
 			return null;
 		}
+
 		try {
 			T instance = this.current != null ? this.current : clazz.getDeclaredConstructor().newInstance();
-			FormDataBinder.bind(instance, fieldComponentMap, builderUtil);
+
+			FormDataBinder.extract(instance, fieldComponentMap);
 
 			return instance;
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
