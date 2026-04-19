@@ -2,6 +2,9 @@ package com.foksuzoglu.dynamicform.internal;
 
 import java.awt.BorderLayout;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import javax.swing.BorderFactory;
@@ -174,7 +177,10 @@ public class ExampleOnyDetail extends JFrame {
 			Class<?> fieldType = field.getType();
 			Object value;
 
-			if (isSimpleType(fieldType)) {
+			// 🔥 LIST HANDLING
+			if (List.class.isAssignableFrom(fieldType)) {
+				value = generateList(field);
+			} else if (isSimpleType(fieldType)) {
 				value = generateSimpleValue(fieldType);
 			} else {
 				value = generateObject(fieldType);
@@ -184,6 +190,48 @@ public class ExampleOnyDetail extends JFrame {
 		}
 
 		return instance;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Object generateList(Field field) throws Exception {
+
+		Class<?> genericType = getGenericType(field);
+
+		List<Object> list = new ArrayList<>();
+
+		int size = 5;
+
+		for (int i = 0; i < size; i++) {
+
+			// 🔥 STRING / INT / BOOLEAN vs
+			if (isSimpleType(genericType)) {
+				list.add(generateSimpleValue(genericType));
+			}
+			// 🔥 MODEL / NESTED OBJECT
+			else {
+				list.add(generateObject(genericType));
+			}
+		}
+
+		return list;
+	}
+
+	private Class<?> getGenericType(Field field) {
+
+		if (!(field.getGenericType() instanceof ParameterizedType)) {
+			return Object.class;
+		}
+
+		ParameterizedType pt = (ParameterizedType) field.getGenericType();
+
+		java.lang.reflect.Type actualType = pt.getActualTypeArguments()[0];
+
+		if (actualType instanceof Class<?>) {
+			return (Class<?>) actualType;
+		}
+
+		// fallback (nested generics vs)
+		return Object.class;
 	}
 
 	private Object generateRandomValue(Class<?> type) {

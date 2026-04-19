@@ -1,7 +1,10 @@
 package com.foksuzoglu.dynamicform.internal;
 
+import java.util.List;
+
 import com.foksuzoglu.dynamicform.annotation.Detail;
 import com.foksuzoglu.dynamicform.annotation.Row;
+import com.foksuzoglu.dynamicform.graph.Graph;
 
 public class User {
 
@@ -11,6 +14,7 @@ public class User {
 	@Detail(key = "user.name", row = 0, col = 0)
 	private String name;
 
+	@Graph
 	@Row(header = "user.age")
 	@Detail(key = "user.age", row = 1, col = 0)
 	private int age;
@@ -18,7 +22,7 @@ public class User {
 	@Row(header = "user.active")
 	@Detail(key = "user.active", row = 2, col = 0)
 	private boolean active;
-
+	@Graph
 	@Row(header = "user.salary")
 	@Detail(key = "user.salary", row = 3, col = 0)
 	private double salary;
@@ -30,11 +34,11 @@ public class User {
 	@Row(header = "user.phone")
 	@Detail(key = "user.phone", row = 5, col = 0)
 	private String phone;
-
+	@Graph
 	@Row(header = "user.score")
 	@Detail(key = "user.score", row = 6, col = 0)
 	private int score;
-
+	@Graph
 	@Row(header = "user.height")
 	@Detail(key = "user.height", row = 7, col = 0)
 	private double height;
@@ -47,28 +51,35 @@ public class User {
 	@Detail(key = "user.hasJob", row = 9, col = 0)
 	private boolean hasJob;
 
-	// ---------- INNER BLOCKS ----------
-	private Address address;
+	@Row(header = "user.company")
+	@Detail(key = "user.company", row = 10, col = 0)
 	private Company company;
-	private Bank bank;
-	private Identity identity;
-	private Preferences preferences;
-	private Security security;
-	private Device device;
-	private Social social;
-	private Statistics statistics;
+
+	@Detail(key = "user.names", row = 11, col = 0)
+	private List<String> names;
+
+	@Detail(key = "user.addresses", row = 12, col = 0)
+	private List<Address> addresses;
+
+	// ---------- INNER BLOCKS ---------
+//	private Company company;
+//	private Bank bank;
+//	private Identity identity;
+//	private Preferences preferences;
+//	private Security security;
+//	private Device device;
+//	private Social social;
+//	private Statistics statistics;
 
 	public User() {
 	}
 
 	@Override
 	public String toString() {
-		return "User [name=" + name + ", age=" + age + ", active=" + active + ", salary=" + salary + ", email=" + email
-				+ ", phone=" + phone + ", score=" + score + ", height=" + height + ", married=" + married + ", hasJob="
-				+ hasJob + ", \naddress=" + address.toString() + ", \ncompany=" + company.toString() + ", \nbank="
-				+ bank.toString() + ", \nidentity=" + identity.toString() + ", \npreferences=" + preferences.toString()
-				+ ", \nsecurity=" + security.toString() + ",\ndevice=" + device.toString() + ", \nsocial="
-				+ social.toString() + ",\n statistics=" + statistics.toString() + "]";
+		return "User [name=" + name + ", age=" + age + ", active=" + active + ", \nsalary=" + salary + ", email="
+				+ email + ",\n phone=" + phone + ", score=" + score + ", height=" + height + "\n, married=" + married
+				+ ", hasJob=" + hasJob + ",\n company=" + company + "\n names=" + names.toString() + ", \naddresses="
+				+ addresses.toString() + "]";
 	}
 
 }
@@ -119,14 +130,18 @@ class Address {
 	@Detail(key = "address.latitude", row = 9, col = 0)
 	private double latitude;
 
+	@Row(header = "address.neighbors")
+	@Detail(key = "address.neighbors", row = 10, col = 0)
+	private List<String> neighbors;
+
 	public Address() {
 	}
 
 	@Override
 	public String toString() {
-		return "Address [street=" + street + ", city=" + city + ", zip=" + zip + ", country=" + country + ", building="
-				+ building + ", floor=" + floor + ", apartment=" + apartment + ", region=" + region + ", longitude="
-				+ longitude + ", latitude=" + latitude + "]";
+		return "\nAddress [street=" + street + ", city=" + city + ", zip=" + zip + ", country=" + country
+				+ ", building=" + building + ", floor=" + floor + ", apartment=" + apartment + ", region=" + region
+				+ ", longitude=" + longitude + ", latitude=" + latitude + "]";
 	}
 
 }
@@ -172,6 +187,10 @@ class Company {
 	@Row(header = "company.bonus")
 	@Detail(key = "company.bonus", row = 9, col = 0)
 	private double bonus;
+
+	@Row(header = "company.workers")
+	@Detail(key = "company.workers", row = 10, col = 0)
+	private List<String> workers;
 
 	public Company() {
 	}

@@ -1,6 +1,6 @@
 package com.foksuzoglu.dynamicform.api;
 
-import javax.swing.JScrollPane;
+import javax.swing.JPanel;
 
 import com.foksuzoglu.dynamicform.validation.ValidationResult;
 
@@ -49,7 +49,7 @@ public interface IDynamicDetail<T> {
 	 *
 	 * @return the form JScrollPane (never null)
 	 */
-	JScrollPane getPanel();
+	JPanel getPanel();
 
 	/**
 	 * Collects the current UI values and converts them into a new instance of the

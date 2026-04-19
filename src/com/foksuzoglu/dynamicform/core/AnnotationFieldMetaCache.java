@@ -43,6 +43,21 @@ public final class AnnotationFieldMetaCache {
 
 			field.setAccessible(true);
 
+			if (isListType(field)) {
+
+				if (!field.isAnnotationPresent(annotationClass)) {
+					continue;
+				}
+
+				Detail detail = field.getAnnotation(Detail.class);
+
+				result.add(new FieldMeta(field, detail.key(), currentRow, detail.col()));
+
+				currentRow++; // list tek satır kaplar (UI expand eder)
+
+				continue;
+			}
+
 			if (isSimpleType(field.getType())) {
 
 				if (!field.isAnnotationPresent(annotationClass)) {
@@ -96,6 +111,10 @@ public final class AnnotationFieldMetaCache {
 		}
 
 		return 0;
+	}
+
+	private static boolean isListType(Field field) {
+		return List.class.isAssignableFrom(field.getType());
 	}
 
 	private static boolean isSimpleType(Class<?> type) {
