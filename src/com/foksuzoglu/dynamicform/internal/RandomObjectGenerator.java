@@ -20,6 +20,7 @@ public class RandomObjectGenerator {
 	private static final int ARRAY_SIZE = 10;
 
 	// ---------------- ENTRY ----------------
+	@SuppressWarnings("unchecked")
 	public <T> T generate(Class<T> type) {
 		try {
 			return (T) generateInternal(type, new HashSet<>());
@@ -29,88 +30,96 @@ public class RandomObjectGenerator {
 	}
 
 	// ---------------- CORE ----------------
-	private Object generateInternal(Class<?> type, Set<Class<?>> visited) throws Exception {
+	private Object generateInternal(Type type, Set<Type> visited) throws Exception {
 
-		if (isSimple(type)) {
-			return generateSimple(type);
-		}
+		if (type instanceof Class<?>) {
 
-		if (type.isArray()) {
-			return generateArray(type.getComponentType(), visited);
-		}
+			Class<?> clazz = (Class<?>) type;
 
-		if (List.class.isAssignableFrom(type)) {
-			return generateList(Object.class, visited); // generic unknown fallback
-		}
-
-		if (visited.contains(type)) {
-			return null; // recursion guard
-		}
-
-		visited.add(type);
-
-		Object instance = type.getDeclaredConstructor().newInstance();
-
-		for (Field field : type.getDeclaredFields()) {
-
-			if (!field.isAnnotationPresent(Detail.class)) {
-				continue;
+			if (isSimple(clazz)) {
+				return generateSimple(clazz);
 			}
 
-			field.setAccessible(true);
-
-			Class<?> fieldType = field.getType();
-			Object value;
-
-			if (List.class.isAssignableFrom(fieldType)) {
-				value = generateList(getGenericType(field), visited);
-			} else if (fieldType.isArray()) {
-				value = generateArray(fieldType.getComponentType(), visited);
-			} else if (isSimple(fieldType)) {
-				value = generateSimple(fieldType);
-			} else {
-				value = generateInternal(fieldType, visited);
+			if (clazz.isArray()) {
+				return generateArray(clazz.getComponentType(), visited);
 			}
 
-			field.set(instance, value);
+			if (List.class.isAssignableFrom(clazz)) {
+				return generateList(Object.class, visited); // fallback
+			}
+
+			if (visited.contains(type)) {
+				return null;
+			}
+
+			visited.add(type);
+
+			Object instance = clazz.getDeclaredConstructor().newInstance();
+
+			for (Field field : clazz.getDeclaredFields()) {
+
+				if (!field.isAnnotationPresent(Detail.class)) {
+					continue;
+				}
+
+				field.setAccessible(true);
+
+				Type fieldType = field.getGenericType();
+
+				Object value = generateInternal(fieldType, visited);
+
+				field.set(instance, value);
+			}
+
+			visited.remove(type);
+
+			return instance;
 		}
 
-		visited.remove(type);
+		// =====================================================
+		// 🔥 PARAMETERIZED TYPE (LIST / GENERIC)
+		// =====================================================
+		if (type instanceof ParameterizedType) {
 
-		return instance;
+			ParameterizedType pt = (ParameterizedType) type;
+
+			Class<?> raw = (Class<?>) pt.getRawType();
+
+			// -------- LIST --------
+			if (List.class.isAssignableFrom(raw)) {
+
+				Type innerType = pt.getActualTypeArguments()[0];
+
+				return generateList(innerType, visited);
+			}
+		}
+
+		return null;
 	}
 
 	// ---------------- LIST ----------------
-	private Object generateList(Class<?> genericType, Set<Class<?>> visited) throws Exception {
+	private List<?> generateList(Type genericType, Set<Type> visited) throws Exception {
 
 		List<Object> list = new ArrayList<>();
 
 		for (int i = 0; i < LIST_SIZE; i++) {
 
-			if (isSimple(genericType)) {
-				list.add(generateSimple(genericType));
-			} else {
-				list.add(generateInternal(genericType, visited));
-			}
+			Object value = generateInternal(genericType, visited);
+
+			list.add(value);
 		}
 
 		return list;
 	}
 
 	// ---------------- ARRAY ----------------
-	private Object generateArray(Class<?> componentType, Set<Class<?>> visited) throws Exception {
+	private Object generateArray(Class<?> componentType, Set<Type> visited) throws Exception {
 
 		Object array = Array.newInstance(componentType, ARRAY_SIZE);
 
 		for (int i = 0; i < ARRAY_SIZE; i++) {
 
-			Object value;
-
-			if (isSimple(componentType)) {
-				value = generateSimple(componentType);
-			} else {
-				value = generateInternal(componentType, visited);
-			}
+			Object value = generateInternal(componentType, visited);
 
 			Array.set(array, i, value);
 		}

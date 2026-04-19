@@ -45,7 +45,7 @@ class DynamicDetailImpl2<T> implements IDynamicDetail<T> {
 
 		this.editable = (mode == FormMode.EDIT);
 		this.languageProvider = languageProvider;
-		this.builderUtil = new PanelBuilderUtil(languageProvider);
+		this.builderUtil = new PanelBuilderUtil(languageProvider, fieldComponentMap);
 		this.messageResolver = validationResolver;
 		buildForm();
 
@@ -66,7 +66,7 @@ class DynamicDetailImpl2<T> implements IDynamicDetail<T> {
 	private void buildForm() {
 		// Row + Col sıralama (garanti)
 
-		builderUtil.buildPane(getPanel(), metas, fieldComponentMap);
+		builderUtil.buildPane(getPanel(), metas);
 		builderUtil.applyEditableState(fieldComponentMap, editable);
 		getPanel().revalidate();
 		getPanel().repaint();

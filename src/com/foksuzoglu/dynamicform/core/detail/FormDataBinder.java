@@ -140,7 +140,7 @@ public class FormDataBinder {
 							// 🔥 OBJECT TYPE (ASIL FIX BURASI)
 							else if (item != null) {
 
-								bindObjectToPanel(item, itemPanel);
+								bindObjectToPanel(item, itemPanel, fieldMap, builderUtil);
 							}
 
 							JPanel wrapper = new JPanel();
@@ -171,7 +171,8 @@ public class FormDataBinder {
 		}
 	}
 
-	private static void bindObjectToPanel(Object obj, JComponent panel) {
+	private static void bindObjectToPanel(Object obj, JComponent panel, Map<Field, JComponent> fieldMap,
+			PanelBuilderUtil builderUtil) {
 
 		for (Field f : obj.getClass().getDeclaredFields()) {
 
@@ -179,16 +180,18 @@ public class FormDataBinder {
 
 			try {
 				Object val = f.get(obj);
-
+				System.err.println(f.getName());
 				JComponent comp = findComponentByFieldName(panel, f.getName());
 
 				if (comp != null) {
 
 					if (ReflectionUtil.isSimpleType(f.getType())) {
 						setComponentValue(comp, val);
-					} else if (val != null) {
-						bindObjectToPanel(val, comp); // recursive
+					} else {
+						bindObjectToPanel(val, comp, fieldMap, builderUtil); // recursive
 					}
+				} else {
+					bind(obj, fieldMap, builderUtil);
 				}
 
 			} catch (Exception e) {

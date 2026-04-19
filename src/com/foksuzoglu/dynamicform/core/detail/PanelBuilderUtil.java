@@ -33,9 +33,19 @@ import com.foksuzoglu.dynamicform.provider.FieldComponentRegistry;
 public class PanelBuilderUtil {
 
 	private LanguageProvider languageProvider;
+	private Map<Field, JComponent> fieldComponentMap;
 
-	public PanelBuilderUtil(LanguageProvider languageProvider) {
+	public PanelBuilderUtil(LanguageProvider languageProvider, Map<Field, JComponent> fieldComponentMap) {
 		this.languageProvider = languageProvider;
+		this.fieldComponentMap = fieldComponentMap;
+	}
+
+	public void buildPane(DetailPane detailPane, List<FieldMeta> metas) {
+		for (FieldMeta meta : metas) {
+			Field field = meta.getField();
+			JComponent comp = getComp(meta);
+			detailPane.add(comp, meta);
+		}
 	}
 
 	JComponent getLine(FieldMeta meta) {
@@ -116,30 +126,24 @@ public class PanelBuilderUtil {
 		return listPanel;
 	}
 
-	public void buildPane(DetailPane detailPane, List<FieldMeta> metas, Map<Field, JComponent> fieldComponentMap) {
-		for (FieldMeta meta : metas) {
-			Field field = meta.getField();
-			JComponent comp = getComp(meta);
-			detailPane.add(comp, meta);
-			fieldComponentMap.put(field, comp);
-		}
-	}
-
 	public JComponent getComp(FieldMeta meta) {
 		Field field = meta.getField();
 		if (ReflectionUtil.isListType(field.getType())) {
 			JPanel listPanel = createListPanel(meta);
+			fieldComponentMap.put(meta.getField(), listPanel);
 			return listPanel;
 		} else if (ReflectionUtil.isSimpleType(field.getType())) {
-			JComponent comp = createSimplePanel(meta);
+			JComponent componentForType = createComponentForType(meta);
+			fieldComponentMap.put(meta.getField(), componentForType);
+			JComponent comp = createSimplePanel(meta, componentForType);
 			return comp;
 		} else {
-			JComponent comp = buildNestedPanel(getListGenericType(field));
+			JComponent comp = buildNestedPanel(field.getType());
 			return comp;
 		}
 	}
 
-	private JComponent createSimplePanel(FieldMeta meta) {
+	private JComponent createSimplePanel(FieldMeta meta, JComponent componentForType) {
 		JPanel simplePanel = new JPanel();
 		GridBagLayout gbl_panelMain = new GridBagLayout();
 		gbl_panelMain.columnWidths = new int[] { 150, 0 };
@@ -166,7 +170,8 @@ public class PanelBuilderUtil {
 		gbc.gridy = meta.getRow();
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 
-		simplePanel.add(createComponentForType(meta), gbc);
+		simplePanel.add(componentForType, gbc);
+
 		return simplePanel;
 	}
 
@@ -177,7 +182,6 @@ public class PanelBuilderUtil {
 		Class<?> genericType = getListGenericType(meta.getField());
 		JComponent comp = createComponentForType(meta);
 		if (!ReflectionUtil.isSimpleType(genericType)) {
-
 			comp = buildNestedPanel(genericType);
 		}
 		rowPanel.getPanel().add(comp, BorderLayout.CENTER);

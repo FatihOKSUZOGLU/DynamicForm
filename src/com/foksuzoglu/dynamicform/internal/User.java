@@ -140,8 +140,8 @@ class Address {
 	@Override
 	public String toString() {
 		return "\nAddress [street=" + street + ", city=" + city + ", zip=" + zip + ", country=" + country
-				+ ", building=" + building + ", floor=" + floor + ", apartment=" + apartment + ", region=" + region
-				+ ", longitude=" + longitude + ", latitude=" + latitude + "]";
+				+ ", building=" + building + ", floor=" + floor + ", \napartment=" + apartment + ", region=" + region
+				+ ", longitude=" + longitude + ", latitude=" + latitude + ", neighbors=" + neighbors.toString() + "]";
 	}
 
 }
