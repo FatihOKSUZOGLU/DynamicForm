@@ -1,4 +1,4 @@
-package com.foksuzoglu.dynamicform.core;
+package com.foksuzoglu.dynamicform.core.detail;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -8,7 +8,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.SwingConstants;
 
 import com.foksuzoglu.dynamicform.model.FieldMeta;
 
@@ -51,9 +50,9 @@ public class DetailPane extends JPanel {
 		if (panelMain == null) {
 			panelMain = new JPanel();
 			GridBagLayout gbl_panelMain = new GridBagLayout();
-			gbl_panelMain.columnWidths = new int[] { 100, 0, 0 };
+			gbl_panelMain.columnWidths = new int[] { 0 };
 			gbl_panelMain.rowHeights = new int[] { 0, 0 };
-			gbl_panelMain.columnWeights = new double[] { 0.0, 1.0 };
+			gbl_panelMain.columnWeights = new double[] { 1.0 };
 			gbl_panelMain.rowWeights = new double[] { 0.0 };
 			panelMain.setLayout(gbl_panelMain);
 
@@ -63,10 +62,9 @@ public class DetailPane extends JPanel {
 
 	public void add(JComponent comp, FieldMeta meta) {
 		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.insets = new Insets(5, 5, 5, 5);
+		gbc.insets = new Insets(0, 5, 2, 5);
 		gbc.weightx = 0;
 		gbc.weighty = 0;
-		gbc.gridwidth = 3;
 		gbc.gridx = meta.getCol();
 		gbc.gridy = meta.getRow();
 		gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -79,30 +77,6 @@ public class DetailPane extends JPanel {
 		getPanelMain().add(comp, gbc);
 		getPanelMain().revalidate();
 		getPanelMain().repaint();
-	}
-
-	public void add(JComponent comp, FieldMeta meta, String text) {
-		GridBagConstraints gbc = new GridBagConstraints();
-		// ---------------- LABEL ----------------
-		JLabel label = new JLabel(text);
-		label.setHorizontalAlignment(SwingConstants.RIGHT);
-
-		gbc.insets = new Insets(5, 5, 5, 5);
-		gbc.gridx = meta.getCol();
-		gbc.gridy = meta.getRow();
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		gbc.anchor = GridBagConstraints.EAST;
-
-		addToMain(label, gbc);
-
-		// ---------------- COMPONENT ----------------
-		gbc.insets = new Insets(5, 5, 5, 5);
-		gbc.gridx = 1;
-		gbc.gridy = meta.getRow();
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-
-		addToMain(comp, gbc);
-
 	}
 
 	public JLabel getLblNewLabel() {

@@ -1,4 +1,4 @@
-package com.foksuzoglu.dynamicform.core;
+package com.foksuzoglu.dynamicform.core.detail;
 
 import java.awt.Component;
 import java.lang.reflect.Field;

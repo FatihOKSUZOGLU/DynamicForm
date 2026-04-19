@@ -11,7 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import com.foksuzoglu.dynamicform.api.IDynamicDetail;
-import com.foksuzoglu.dynamicform.core.DetailPanelFactory;
+import com.foksuzoglu.dynamicform.core.detail.DetailPanelFactory;
 
 public class ExampleDynamicTable2 extends JFrame {
 

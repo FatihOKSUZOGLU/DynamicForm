@@ -1,8 +1,8 @@
-package com.foksuzoglu.dynamicform.core;
+package com.foksuzoglu.dynamicform.core.detail;
 
 import com.foksuzoglu.dynamicform.api.IDynamicDetail;
 import com.foksuzoglu.dynamicform.api.LanguageProvider;
-import com.foksuzoglu.dynamicform.core.DynamicDetailImpl2.FormMode;
+import com.foksuzoglu.dynamicform.core.detail.DynamicDetailImpl2.FormMode;
 import com.foksuzoglu.dynamicform.validation.DefaultValidationMessageResolver;
 import com.foksuzoglu.dynamicform.validation.ValidationMessageResolver;
 

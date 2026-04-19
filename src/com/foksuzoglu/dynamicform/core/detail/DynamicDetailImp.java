@@ -1,4 +1,4 @@
-package com.foksuzoglu.dynamicform.core;
+package com.foksuzoglu.dynamicform.core.detail;
 
 import java.lang.reflect.Field;
 import java.util.Comparator;
@@ -10,12 +10,12 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import com.foksuzoglu.dynamicform.annotation.Detail;
 import com.foksuzoglu.dynamicform.api.IDynamicDetail;
 import com.foksuzoglu.dynamicform.api.LanguageProvider;
+import com.foksuzoglu.dynamicform.core.AnnotationFieldMetaCache;
 import com.foksuzoglu.dynamicform.model.FieldMeta;
 import com.foksuzoglu.dynamicform.validation.ValidationMessageResolver;
 import com.foksuzoglu.dynamicform.validation.ValidationResult;
@@ -65,57 +65,18 @@ class DynamicDetailImpl2<T> implements IDynamicDetail<T> {
 	// --------------------------------------------------
 	private void buildForm() {
 		// Row + Col sıralama (garanti)
-		for (FieldMeta meta : metas) {
-			Field field = meta.getField();
-			JComponent comp = getComp(meta);
-			fieldComponentMap.put(field, comp);
-		}
+
+		builderUtil.buildPane(getPanel(), metas, fieldComponentMap);
 		builderUtil.applyEditableState(fieldComponentMap, editable);
 		getPanel().revalidate();
 		getPanel().repaint();
 	}
 
-	//// PANEL
-
-	public JComponent getComp(FieldMeta meta) {
-		Field field = meta.getField();
-		if (ReflectionUtil.isListType(field.getType())) {
-			JPanel listPanel = builderUtil.createListPanel(meta);
-			getPanel().add(listPanel, meta);
-			return listPanel;
-		} else if (ReflectionUtil.isSimpleType(field.getType())) {
-			JComponent comp = builderUtil.createComponentForType(meta);
-			getPanel().add(comp, meta, resolveLabel(meta.getKey()));
-			return comp;
-		} else {
-			JComponent comp = builderUtil.getLine(meta);
-			getPanel().add(comp, meta);
-			return comp;
-		}
-	}
-
-	private String resolveLabel(String key) {
-		if (languageProvider == null) {
-			return key; // fallback
-		}
-		return languageProvider.getText(key);
-	}
-
-	// --------------------------------------------------
-	// COMPONENT FACTORY
-	// --------------------------------------------------
-
-	// --------------------------------------------------
-	// VALIDATION (UI bağımsız)
-	// --------------------------------------------------
 	@Override
 	public ValidationResult validate() {
 		return new FormValidator(messageResolver, languageProvider).validate(fieldComponentMap);
 	}
 
-	// --------------------------------------------------
-	// GET DATA
-	// --------------------------------------------------
 	@Override
 	public T getData() {
 		if (!editable && this.current != null) {

@@ -1,7 +1,6 @@
-package com.foksuzoglu.dynamicform.core;
+package com.foksuzoglu.dynamicform.core.detail;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -26,6 +25,7 @@ import javax.swing.SwingConstants;
 
 import com.foksuzoglu.dynamicform.annotation.Detail;
 import com.foksuzoglu.dynamicform.api.LanguageProvider;
+import com.foksuzoglu.dynamicform.core.AnnotationFieldMetaCache;
 import com.foksuzoglu.dynamicform.model.FieldMeta;
 import com.foksuzoglu.dynamicform.provider.FieldComponentProvider;
 import com.foksuzoglu.dynamicform.provider.FieldComponentRegistry;
@@ -80,18 +80,15 @@ public class PanelBuilderUtil {
 		metas.sort(Comparator.comparingInt(FieldMeta::getRow).thenComparingInt(FieldMeta::getCol));
 
 		for (FieldMeta meta : metas) {
-
-			Field field = meta.getField();
-
-			if (ReflectionUtil.isSimpleType(field.getType())) {
-
-				nested.add(getPanelNestedRow(meta));
-
-			} else {
-
-				// recursive nested object
-				nested.add(buildNestedPanel(field.getType()));
-			}
+//			Field field = meta.getField();
+//			if (ReflectionUtil.isSimpleType(field.getType())) {
+//				nested.add(getPanelNestedRow(meta));
+//			} else {
+//				// recursive nested object
+//				nested.add(buildNestedPanel(field.getType()));
+//			}
+			JComponent comp = getComp(meta);
+			nested.add(comp, meta);
 		}
 
 		return nested;
@@ -110,9 +107,7 @@ public class PanelBuilderUtil {
 			wrapper.add(separator);
 			listPanel.add(wrapper);
 			itemPanel.getBtnRemove().addActionListener(event -> {
-
 				listPanel.remove(wrapper); // 🔥 HEPSİ SİLİNİR
-
 				listPanel.revalidate();
 				listPanel.repaint();
 			});
@@ -121,27 +116,71 @@ public class PanelBuilderUtil {
 		return listPanel;
 	}
 
+	public void buildPane(DetailPane detailPane, List<FieldMeta> metas, Map<Field, JComponent> fieldComponentMap) {
+		for (FieldMeta meta : metas) {
+			Field field = meta.getField();
+			JComponent comp = getComp(meta);
+			detailPane.add(comp, meta);
+			fieldComponentMap.put(field, comp);
+		}
+	}
+
+	public JComponent getComp(FieldMeta meta) {
+		Field field = meta.getField();
+		if (ReflectionUtil.isListType(field.getType())) {
+			JPanel listPanel = createListPanel(meta);
+			return listPanel;
+		} else if (ReflectionUtil.isSimpleType(field.getType())) {
+			JComponent comp = createSimplePanel(meta);
+			return comp;
+		} else {
+			JComponent comp = buildNestedPanel(getListGenericType(field));
+			return comp;
+		}
+	}
+
+	private JComponent createSimplePanel(FieldMeta meta) {
+		JPanel simplePanel = new JPanel();
+		GridBagLayout gbl_panelMain = new GridBagLayout();
+		gbl_panelMain.columnWidths = new int[] { 150, 0 };
+		gbl_panelMain.rowHeights = new int[] { 0, 0 };
+		gbl_panelMain.columnWeights = new double[] { 0.0, 1.0 };
+		gbl_panelMain.rowWeights = new double[] { 0.0 };
+		simplePanel.setLayout(gbl_panelMain);
+		GridBagConstraints gbc = new GridBagConstraints();
+		// ---------------- LABEL ----------------
+		JLabel label = new JLabel(resolveLabel(meta.getKey()));
+		label.setHorizontalAlignment(SwingConstants.RIGHT);
+
+		gbc.insets = new Insets(0, 5, 0, 5);
+		gbc.gridx = meta.getCol();
+		gbc.gridy = meta.getRow();
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.anchor = GridBagConstraints.EAST;
+
+		simplePanel.add(label, gbc);
+
+		// ---------------- COMPONENT ----------------
+		gbc.insets = new Insets(0, 5, 0, 5);
+		gbc.gridx = meta.getCol() + 1;
+		gbc.gridy = meta.getRow();
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+
+		simplePanel.add(createComponentForType(meta), gbc);
+		return simplePanel;
+	}
+
 	RowPanel createListItemPanel(FieldMeta meta) {
 
 		RowPanel rowPanel = new RowPanel();
+		// get type of list
 		Class<?> genericType = getListGenericType(meta.getField());
+		JComponent comp = createComponentForType(meta);
+		if (!ReflectionUtil.isSimpleType(genericType)) {
 
-		if (ReflectionUtil.isSimpleType(genericType)) {
-
-			JComponent comp = createComponentForType(meta);
-
-			// 🔥 label + component wrapper
-			JPanel line = new JPanel(new BorderLayout());
-			line.add(new JLabel(resolveLabel(meta.getKey())), BorderLayout.WEST);
-			line.add(comp, BorderLayout.CENTER);
-
-			rowPanel.getPanel().add(line, BorderLayout.CENTER);
-
-		} else {
-
-			JComponent nested = buildNestedPanel(genericType);
-			rowPanel.getPanel().add(nested, BorderLayout.CENTER);
+			comp = buildNestedPanel(genericType);
 		}
+		rowPanel.getPanel().add(comp, BorderLayout.CENTER);
 
 		return rowPanel;
 	}
@@ -149,30 +188,6 @@ public class PanelBuilderUtil {
 	private Class<?> getListGenericType(Field field) {
 		ParameterizedType type = (ParameterizedType) field.getGenericType();
 		return (Class<?>) type.getActualTypeArguments()[0];
-	}
-
-	private JComponent getPanelNestedRow(FieldMeta meta) {
-		JPanel line = new JPanel(new GridBagLayout());
-
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridy = 0;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		gbc.anchor = GridBagConstraints.EAST;
-		gbc.insets = new Insets(2, 5, 2, 5);
-
-		// ---------------- LABEL (200px fixed) ----------------
-		gbc.gridx = 0;
-		gbc.weightx = 0;
-		JLabel label = new JLabel(resolveLabel(meta.getKey()));
-		label.setPreferredSize(new Dimension(150, label.getPreferredSize().height));
-		line.add(label, gbc);
-
-		// ---------------- COMPONENT (fills remaining space) ----------------
-		gbc.gridx = 1;
-		gbc.weightx = 1.0;
-		line.add(createComponentForType(meta), gbc);
-
-		return line;
 	}
 
 	public JComponent createComponentForType(FieldMeta fieldMeta) {
@@ -187,11 +202,9 @@ public class PanelBuilderUtil {
 	}
 
 	private String resolveLabel(String key) {
-
 		if (languageProvider == null) {
 			return key; // fallback
 		}
-
 		return languageProvider.getText(key);
 	}
 

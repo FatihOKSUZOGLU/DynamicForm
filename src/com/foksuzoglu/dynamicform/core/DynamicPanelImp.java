@@ -16,6 +16,7 @@ import com.foksuzoglu.dynamicform.api.DynamicPanel;
 import com.foksuzoglu.dynamicform.api.IDynamicDetail;
 import com.foksuzoglu.dynamicform.api.IDynamicPanel;
 import com.foksuzoglu.dynamicform.api.LanguageProvider;
+import com.foksuzoglu.dynamicform.core.detail.DetailPanelFactory;
 import com.foksuzoglu.dynamicform.validation.ValidationMessageResolver;
 
 class DynamicPanelImp<T> implements IDynamicPanel<T> {

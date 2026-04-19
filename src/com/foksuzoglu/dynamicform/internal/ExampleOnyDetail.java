@@ -16,7 +16,7 @@ import javax.swing.SwingUtilities;
 
 import com.foksuzoglu.dynamicform.annotation.Detail;
 import com.foksuzoglu.dynamicform.api.IDynamicDetail;
-import com.foksuzoglu.dynamicform.core.DetailPanelFactory;
+import com.foksuzoglu.dynamicform.core.detail.DetailPanelFactory;
 
 public class ExampleOnyDetail extends JFrame {
 
