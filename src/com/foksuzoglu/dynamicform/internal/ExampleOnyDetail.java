@@ -1,11 +1,7 @@
 package com.foksuzoglu.dynamicform.internal;
 
 import java.awt.BorderLayout;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.awt.GridLayout;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -14,102 +10,109 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-import com.foksuzoglu.dynamicform.annotation.Detail;
 import com.foksuzoglu.dynamicform.api.IDynamicDetail;
 import com.foksuzoglu.dynamicform.core.detail.DetailPanelFactory;
 
 public class ExampleOnyDetail extends JFrame {
 
-	private IDynamicDetail<User> form; // lazy
-	private JButton createButton; // lazy
-	private JButton randomButton; // lazy
+	private IDynamicDetail<User> form;
 
-	private JButton readOnlyButton;
-
+	private JButton createButton;
+	private JButton randomButton;
+	private JButton toggleButton;
 	private JButton resetButton;
-	private JPanel mainPanel; // lazy
 
-	private final Random random = new Random();
+	private JPanel mainPanel;
+
+	private final RandomObjectGenerator generator = new RandomObjectGenerator();
 
 	public ExampleOnyDetail() {
 		super("Dynamic Form Demo");
+
 		initFrame();
-		initUI();
-	}
-
-	private void initFrame() {
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize(700, 700);
-		setLocationRelativeTo(null);
-	}
-
-	private void initUI() {
 		setContentPane(getMainPanel());
 	}
 
-	// ---------------- LAZY PANEL ----------------
+	// ---------------- FRAME ----------------
+	private void initFrame() {
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setSize(800, 700);
+		setLocationRelativeTo(null);
+	}
 
+	// ---------------- MAIN PANEL ----------------
 	private JPanel getMainPanel() {
 		if (mainPanel == null) {
 
 			mainPanel = new JPanel(new BorderLayout(10, 10));
+			mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 			mainPanel.add(getForm().getPanel(), BorderLayout.CENTER);
-
-			JPanel bottom = new JPanel(new BorderLayout(10, 10));
-			bottom.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-			bottom.add(getRandomButton(), BorderLayout.WEST);
-			bottom.add(getResetButton(), BorderLayout.NORTH);
-			bottom.add(getToggleButton(), BorderLayout.CENTER);
-			bottom.add(getCreateButton(), BorderLayout.EAST);
-
-			mainPanel.add(bottom, BorderLayout.SOUTH);
+			mainPanel.add(createBottomPanel(), BorderLayout.SOUTH);
 		}
 		return mainPanel;
 	}
 
-	// ---------------- LAZY FORM ----------------
-
-	private JButton getToggleButton() {
-		if (readOnlyButton == null) {
-			readOnlyButton = new JButton("Toggle ReadOnly");
-			readOnlyButton.addActionListener(e -> {
-				form.setEditable(false);
-			});
-
+	// ---------------- FORM ----------------
+	private IDynamicDetail<User> getForm() {
+		if (form == null) {
+			form = DetailPanelFactory.builder(User.class).editable().build();
 		}
-		return readOnlyButton;
+		return form;
+	}
+
+	// ---------------- BOTTOM PANEL ----------------
+	private JPanel createBottomPanel() {
+
+		JPanel panel = new JPanel(new GridLayout(1, 4, 10, 10));
+
+		panel.add(getRandomButton());
+		panel.add(getResetButton());
+		panel.add(getToggleButton());
+		panel.add(getCreateButton());
+
+		return panel;
+	}
+
+	// ---------------- BUTTONS ----------------
+
+	private JButton getRandomButton() {
+		if (randomButton == null) {
+			randomButton = new JButton("Random Data");
+
+			randomButton.addActionListener(e -> {
+				User user = generator.generate(User.class);
+				getForm().setData(user);
+			});
+		}
+		return randomButton;
 	}
 
 	private JButton getResetButton() {
-
 		if (resetButton == null) {
-
 			resetButton = new JButton("Reset");
 
 			resetButton.addActionListener(e -> {
 				getForm().reset();
 			});
 		}
-
 		return resetButton;
 	}
 
-	private IDynamicDetail<User> getForm() {
-		if (form == null) {
-			form = DetailPanelFactory.builder(User.class).editable().build();
+	private JButton getToggleButton() {
+		if (toggleButton == null) {
+			toggleButton = new JButton("Toggle Edit");
 
+			toggleButton.addActionListener(e -> {
+				// toggle logic
+				form.setEditable(!form.getPanel().isEnabled());
+			});
 		}
-		return form;
+		return toggleButton;
 	}
 
-	// ---------------- CREATE BUTTON ----------------
-
 	private JButton getCreateButton() {
-
 		if (createButton == null) {
-
 			createButton = new JButton("Create");
 
 			createButton.addActionListener(e -> {
@@ -117,219 +120,17 @@ public class ExampleOnyDetail extends JFrame {
 				User user = getForm().getData();
 
 				if (user == null) {
-					return; // validation hatası
+					return;
 				}
 
 				JOptionPane.showMessageDialog(this, user.toString(), "Created Object", JOptionPane.INFORMATION_MESSAGE);
 			});
 		}
-
 		return createButton;
 	}
 
-	// ---------------- RANDOM BUTTON ----------------
-
-	private JButton getRandomButton() {
-
-		if (randomButton == null) {
-
-			randomButton = new JButton("Random SetData");
-
-			randomButton.addActionListener(e -> {
-
-				User randomUser = generateRandomUser();
-
-				getForm().setData(randomUser);
-			});
-		}
-
-		return randomButton;
-	}
-
-	// ---------------- RANDOM USER GENERATOR ----------------
-
-	private User generateRandomUser() {
-
-		try {
-			return generateObject(User.class);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	private <T> T generateObject(Class<T> type) throws Exception {
-
-		if (isSimpleType(type)) {
-			return type.cast(generateSimpleValue(type));
-		}
-
-		T instance = type.getDeclaredConstructor().newInstance();
-
-		for (Field field : type.getDeclaredFields()) {
-
-			if (!field.isAnnotationPresent(Detail.class)) {
-				continue;
-			}
-
-			field.setAccessible(true);
-
-			Class<?> fieldType = field.getType();
-			Object value;
-
-			// 🔥 LIST HANDLING
-			if (List.class.isAssignableFrom(fieldType)) {
-				value = generateList(field);
-			} else if (isSimpleType(fieldType)) {
-				value = generateSimpleValue(fieldType);
-			} else {
-				value = generateObject(fieldType);
-			}
-
-			field.set(instance, value);
-		}
-
-		return instance;
-	}
-
-	@SuppressWarnings("unchecked")
-	private Object generateList(Field field) throws Exception {
-
-		Class<?> genericType = getGenericType(field);
-
-		List<Object> list = new ArrayList<>();
-
-		int size = 5;
-
-		for (int i = 0; i < size; i++) {
-
-			// 🔥 STRING / INT / BOOLEAN vs
-			if (isSimpleType(genericType)) {
-				list.add(generateSimpleValue(genericType));
-			}
-			// 🔥 MODEL / NESTED OBJECT
-			else {
-				list.add(generateObject(genericType));
-			}
-		}
-
-		return list;
-	}
-
-	private Class<?> getGenericType(Field field) {
-
-		if (!(field.getGenericType() instanceof ParameterizedType)) {
-			return Object.class;
-		}
-
-		ParameterizedType pt = (ParameterizedType) field.getGenericType();
-
-		java.lang.reflect.Type actualType = pt.getActualTypeArguments()[0];
-
-		if (actualType instanceof Class<?>) {
-			return (Class<?>) actualType;
-		}
-
-		// fallback (nested generics vs)
-		return Object.class;
-	}
-
-	private Object generateRandomValue(Class<?> type) {
-
-		if (isSimpleType(type)) {
-			return generateSimpleValue(type);
-		}
-
-		try {
-
-			Object instance = type.getDeclaredConstructor().newInstance();
-
-			for (Field field : type.getDeclaredFields()) {
-
-				if (!field.isAnnotationPresent(Detail.class)) {
-					continue;
-				}
-
-				field.setAccessible(true);
-
-				Object value = generateRandomValue(field.getType());
-
-				field.set(instance, value);
-			}
-
-			return instance;
-
-		} catch (Exception e) {
-			throw new RuntimeException("Cannot instantiate: " + type.getName(), e);
-		}
-	}
-
-	private Object generateSimpleValue(Class<?> type) {
-
-		if (type == String.class) {
-			return randomString();
-		}
-
-		if (type == int.class || type == Integer.class) {
-			return random.nextInt(150);
-		}
-
-		if (type == long.class || type == Long.class) {
-			return Math.abs(random.nextLong()) % 10_000;
-		}
-
-		if (type == double.class || type == Double.class) {
-			return random.nextDouble() * 1000;
-		}
-
-		if (type == float.class || type == Float.class) {
-			return random.nextFloat() * 1000;
-		}
-
-		if (type == boolean.class || type == Boolean.class) {
-			return random.nextBoolean();
-		}
-
-		if (type == short.class || type == Short.class) {
-			return (short) random.nextInt(Short.MAX_VALUE);
-		}
-
-		if (type == byte.class || type == Byte.class) {
-			return (byte) random.nextInt(Byte.MAX_VALUE);
-		}
-
-		if (type == char.class || type == Character.class) {
-			return (char) (random.nextInt(26) + 'A');
-		}
-
-		if (type.isEnum()) {
-			Object[] constants = type.getEnumConstants();
-			return constants[random.nextInt(constants.length)];
-		}
-
-		return null;
-	}
-
-	private String randomString() {
-		int length = 5 + random.nextInt(6); // 5-10 karakter
-		String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-		StringBuilder sb = new StringBuilder();
-
-		for (int i = 0; i < length; i++) {
-			sb.append(chars.charAt(random.nextInt(chars.length())));
-		}
-
-		return sb.toString();
-	}
-
-	private boolean isSimpleType(Class<?> type) {
-
-		return type.isPrimitive() || type == String.class || Number.class.isAssignableFrom(type)
-				|| type == Boolean.class || type == Character.class || type.isEnum();
-	}
-
+	// ---------------- MAIN ----------------
 	public static void main(String[] args) {
-
 		SwingUtilities.invokeLater(() -> {
 			new ExampleOnyDetail().setVisible(true);
 		});

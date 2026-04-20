@@ -29,7 +29,7 @@ import com.foksuzoglu.dynamicform.api.LanguageProvider;
 import com.foksuzoglu.dynamicform.core.AnnotationFieldMetaCache;
 import com.foksuzoglu.dynamicform.model.FieldMeta;
 import com.foksuzoglu.dynamicform.provider.FieldComponentProvider;
-import com.foksuzoglu.dynamicform.provider.FieldComponentRegistry;
+import com.foksuzoglu.dynamicform.provider.ProviderRegistry;
 
 public class PanelBuilderUtil {
 
@@ -194,8 +194,8 @@ public class PanelBuilderUtil {
 	}
 
 	public JComponent createComponentForType(FieldMeta fieldMeta) {
-		for (FieldComponentProvider provider : FieldComponentRegistry.getProviders()) {
-			if (provider.supports(fieldMeta.getField())) {
+		for (FieldComponentProvider provider : ProviderRegistry.providers) {
+			if (provider.supports(fieldMeta.getField().getType())) {
 				JComponent comp = provider.create(fieldMeta);
 				comp.setName(fieldMeta.getField().getName()); // 🔥 ŞART
 				fieldComponentMap.put(fieldMeta.getField(), comp);

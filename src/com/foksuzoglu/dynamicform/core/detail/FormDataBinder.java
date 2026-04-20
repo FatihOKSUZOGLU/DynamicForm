@@ -214,7 +214,7 @@ public class FormDataBinder {
 				}
 
 				if (isSimple(field.getType())) {
-					ComponentValueAccessor.setValue(comp, value);
+					ComponentValueAccessor.setValue(comp, value, field);
 				} else {
 					bindObjectToRow(value, comp);
 				}

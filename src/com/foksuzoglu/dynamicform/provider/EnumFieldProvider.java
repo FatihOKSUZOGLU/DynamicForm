@@ -1,7 +1,5 @@
 package com.foksuzoglu.dynamicform.provider;
 
-import java.lang.reflect.Field;
-
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 
@@ -10,13 +8,26 @@ import com.foksuzoglu.dynamicform.model.FieldMeta;
 public class EnumFieldProvider implements FieldComponentProvider {
 
 	@Override
-	public boolean supports(Field field) {
-		return field.getType().isEnum();
+	public boolean supports(Class<?> type) {
+		return type.isEnum();
 	}
 
 	@Override
 	public JComponent create(FieldMeta meta) {
-		Object[] constants = meta.getField().getType().getEnumConstants();
-		return new JComboBox<>(constants);
+		Class<?> enumType = meta.getField().getType();
+		JComboBox<Object> combo = new JComboBox<>(enumType.getEnumConstants());
+		combo.setName(meta.getField().getName());
+		return combo;
 	}
+
+	@Override
+	public Object getValue(JComponent component, Class<?> targetType) {
+		return ((JComboBox<?>) component).getSelectedItem();
+	}
+
+	@Override
+	public void setValue(JComponent component, Object value) {
+		((JComboBox<?>) component).setSelectedItem(value);
+	}
+
 }

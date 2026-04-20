@@ -2,114 +2,31 @@ package com.foksuzoglu.dynamicform.core.detail;
 
 import java.awt.Component;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+
+import com.foksuzoglu.dynamicform.provider.FieldComponentProvider;
+import com.foksuzoglu.dynamicform.provider.ProviderRegistry;
 
 public class ComponentValueAccessor {
 
 	public static Object getValue(JComponent comp, Class<?> targetType) {
+
 		try {
 
-			// =====================================================
-			// 🔥 1. LIST (EN BAŞTA OLMALI)
-			// =====================================================
-			if (comp instanceof ListPanel) {
-				ListPanel listPanel = (ListPanel) comp;
+			// 🔥 1. COMPONENT bazlı oku (textfield, checkbox vs)
+			FieldComponentProvider provider = ProviderRegistry.find(targetType);
 
-				List<Object> list = new ArrayList<>();
-
-				Class<?> genericType = listPanel.getGenericType();
-
-				for (Component wrapper : listPanel.getPanelList().getComponents()) {
-
-					if (!(wrapper instanceof JPanel)) {
-						continue;
-					}
-
-					JPanel panelWrapper = (JPanel) wrapper;
-
-					for (Component inner : panelWrapper.getComponents()) {
-
-						if (inner instanceof JComponent) {
-
-							Object raw = getValue((JComponent) inner, genericType);
-							Object val = convert(genericType, raw);
-
-							if (val != null) {
-								list.add(val);
-							}
-						}
-					}
-				}
-
-				return list;
+			if (provider != null && ReflectionUtil.isSimpleType(targetType)) {
+				return provider.getValue(comp, targetType);
 			}
 
-			// ---------------- SIMPLE ----------------
-			if (comp instanceof JTextField) {
-				return convert(targetType, ((JTextField) comp).getText());
-			}
-
-			if (comp instanceof JCheckBox) {
-				return convert(targetType, ((JCheckBox) comp).isSelected());
-			}
-
-			if (comp instanceof JComboBox) {
-				return convert(targetType, ((JComboBox<?>) comp).getSelectedItem());
-			}
-
-			// ---------------- PANEL → OBJECT ----------------
-			if (targetType != null && !ReflectionUtil.isSimpleType(targetType)) {
+			// 🔥 2. OBJECT oluştur (complex type)
+			if (!ReflectionUtil.isSimpleType(targetType)) {
 
 				Object instance = targetType.getDeclaredConstructor().newInstance();
 
-				Component[] children = comp.getComponents();
-
-				for (Component c : children) {
-
-					if (!(c instanceof JComponent)) {
-						continue;
-					}
-
-					JComponent jc = (JComponent) c;
-
-					String name = jc.getName();
-
-					if (name == null) {
-						// nested panel olabilir → recurse
-						extractNested(instance, jc);
-						continue;
-					}
-
-					try {
-
-						Field field = targetType.getDeclaredField(name);
-						field.setAccessible(true);
-
-						Object value, converted;
-
-						if (ReflectionUtil.isSimpleType(field.getType())) {
-
-							value = getValue(jc, field.getType());
-
-						} else {
-
-							value = getValue(jc, field.getType());
-						}
-
-						converted = convert(field.getType(), value);
-						field.set(instance, converted);
-
-					} catch (NoSuchFieldException e) {
-						e.printStackTrace();
-					}
-				}
+				fillObject(instance, comp);
 
 				return instance;
 			}
@@ -121,140 +38,134 @@ public class ComponentValueAccessor {
 		return null;
 	}
 
-	private static void extractNested(Object parent, JComponent panel) {
+	// 🔥 RECURSIVE FIELD FILL
+	private static void fillObject(Object instance, JComponent comp) throws Exception {
 
-		for (Component c : panel.getComponents()) {
+		for (Component c : comp.getComponents()) {
+
+			if (!(c instanceof JComponent)) {
+				continue;
+			}
+			JComponent jc = (JComponent) c;
+			String name = jc.getName();
+
+			// 🔥 field varsa set et
+			if (name != null) {
+
+				Field field;
+
+				try {
+					field = instance.getClass().getDeclaredField(name);
+				} catch (NoSuchFieldException e) {
+					// farklı panel olabilir → altına in
+					fillObject(instance, jc);
+					continue;
+				}
+
+				field.setAccessible(true);
+
+				Class<?> fieldType = field.getType();
+
+				// 🔥 SIMPLE TYPE → provider ile al
+				if (ReflectionUtil.isSimpleType(fieldType)) {
+
+					FieldComponentProvider provider = ProviderRegistry.find(fieldType);
+
+					if (provider != null) {
+						Object value = provider.getValue(jc, fieldType);
+						field.set(instance, value);
+					}
+
+				} else {
+					// 🔥 NESTED OBJECT
+					Object nested = getValue(jc, fieldType);
+					field.set(instance, nested);
+				}
+			}
+
+			// 🔥 HER ZAMAN ALTINA İN (çok kritik)
+			fillObject(instance, jc);
+		}
+	}
+
+	public static void setValue(JComponent comp, Object value, Field field) {
+
+		if (comp == null) {
+			return;
+		}
+
+		try {
+
+			// 🔥 1. SIMPLE COMPONENT → provider ile set
+			FieldComponentProvider provider = ProviderRegistry.find(field.getType());
+
+			if (provider != null && value != null && ReflectionUtil.isSimpleType(value.getClass())) {
+
+				provider.setValue(comp, value);
+				return;
+			}
+
+			// 🔥 2. OBJECT → recursive doldur
+			if (value != null && !ReflectionUtil.isSimpleType(value.getClass())) {
+
+				fillComponent(comp, value);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void fillComponent(JComponent comp, Object model) throws Exception {
+
+		for (Component c : comp.getComponents()) {
 
 			if (!(c instanceof JComponent)) {
 				continue;
 			}
 
 			JComponent jc = (JComponent) c;
-
 			String name = jc.getName();
 
-			if (name == null) {
-				extractNested(parent, jc);
-				continue;
-			}
+			if (name != null) {
 
-			try {
+				Field field;
 
-				Field field = parent.getClass().getDeclaredField(name);
-				field.setAccessible(true);
-
-				Object value, converted;
-
-				if (ReflectionUtil.isSimpleType(field.getType())) {
-
-					value = getValue(jc, field.getType());
-					converted = convert(field.getType(), value);
-
-				} else {
-
-					converted = getValue(jc, field.getType());
+				try {
+					field = model.getClass().getDeclaredField(name);
+				} catch (NoSuchFieldException e) {
+					// farklı panel → altına in
+					fillComponent(jc, model);
+					continue;
 				}
 
-				field.set(parent, converted);
+				field.setAccessible(true);
 
-			} catch (Exception ignore) {
+				Object fieldValue = field.get(model);
+
+				if (fieldValue == null) {
+					continue;
+				}
+
+				Class<?> fieldType = field.getType();
+
+				// 🔥 SIMPLE TYPE → provider ile set
+				if (ReflectionUtil.isSimpleType(fieldType)) {
+
+					FieldComponentProvider provider = ProviderRegistry.find(fieldType);
+
+					if (provider != null) {
+						provider.setValue(jc, fieldValue);
+					}
+
+				} else {
+					// 🔥 NESTED OBJECT
+					setValue(jc, fieldValue, field);
+				}
 			}
-		}
-	}
 
-	private static Object getDefaultValue(Class<?> type) {
-
-		if (!type.isPrimitive()) {
-			return null;
-		}
-
-		if (type == boolean.class) {
-			return false;
-		}
-		if (type == char.class) {
-			return '\u0000';
-		}
-		if (type == byte.class) {
-			return (byte) 0;
-		}
-		if (type == short.class) {
-			return (short) 0;
-		}
-		if (type == int.class) {
-			return 0;
-		}
-		if (type == long.class) {
-			return 0L;
-		}
-		if (type == float.class) {
-			return 0f;
-		}
-		if (type == double.class) {
-			return 0d;
-		}
-
-		return null;
-	}
-
-	private static Object convert(Class<?> type, Object raw) {
-
-		if (raw == null) {
-			return getDefaultValue(type);
-		}
-
-		String value = raw.toString().trim();
-
-		if (value.isEmpty()) {
-			return getDefaultValue(type);
-		}
-
-		if (type == String.class) {
-			return value;
-		}
-
-		if (type == int.class || type == Integer.class) {
-			return Integer.parseInt(value);
-		}
-
-		if (type == double.class || type == Double.class) {
-			return Double.parseDouble(value);
-		}
-
-		if (type == long.class || type == Long.class) {
-			return Long.parseLong(value);
-		}
-
-		if (type == float.class || type == Float.class) {
-			return Float.parseFloat(value);
-		}
-
-		if (type == boolean.class || type == Boolean.class) {
-			return Boolean.parseBoolean(value);
-		}
-
-		if (type == short.class || type == Short.class) {
-			return Short.parseShort(value);
-		}
-
-		if (type == byte.class || type == Byte.class) {
-			return Byte.parseByte(value);
-		}
-
-		if (type.isEnum()) {
-			return Enum.valueOf((Class<Enum>) type, value);
-		}
-
-		throw new IllegalArgumentException("Unsupported type: " + type);
-	}
-
-	public static void setValue(JComponent comp, Object value) {
-
-		if (comp instanceof JTextField) {
-			((JTextField) comp).setText(value != null ? value.toString() : "");
-		} else if (comp instanceof JCheckBox) {
-			((JCheckBox) comp).setSelected(Boolean.TRUE.equals(value));
-		} else if (comp instanceof JComboBox) {
-			((JComboBox<?>) comp).setSelectedItem(value);
+			// 🔥 HER ZAMAN ALTINA İN
+			fillComponent(jc, model);
 		}
 	}
 }
