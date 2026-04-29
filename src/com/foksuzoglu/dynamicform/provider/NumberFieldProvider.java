@@ -4,10 +4,15 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.text.AbstractDocument;
 
-import com.foksuzoglu.dynamicform.model.FieldMeta;
+import com.foksuzoglu.dynamicform.api.LanguageProvider;
 import com.foksuzoglu.dynamicform.model.NumericFilter;
 
-public class NumberFieldProvider implements FieldComponentProvider {
+public class NumberFieldProvider extends MainProvider implements FieldComponentProvider {
+
+	public NumberFieldProvider(LanguageProvider languageProvider) {
+		super(languageProvider);
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
 	public boolean supports(Class<?> type) {
@@ -18,15 +23,14 @@ public class NumberFieldProvider implements FieldComponentProvider {
 	}
 
 	@Override
-	public JComponent create(FieldMeta meta) {
+	public JComponent create(Class<?> clazz) {
 
 		JTextField tf = new JTextField(10);
-		tf.setName(meta.getField().getName());
 
 		// 🔥 input kontrolü
 		((AbstractDocument) tf.getDocument())
 
-				.setDocumentFilter(new NumericFilter(meta.getField().getType()));
+				.setDocumentFilter(new NumericFilter(clazz));
 
 		return tf;
 	}

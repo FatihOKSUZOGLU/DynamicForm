@@ -3,9 +3,14 @@ package com.foksuzoglu.dynamicform.provider;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 
-import com.foksuzoglu.dynamicform.model.FieldMeta;
+import com.foksuzoglu.dynamicform.api.LanguageProvider;
 
-public class StringFieldProvider implements FieldComponentProvider {
+public class StringFieldProvider extends MainProvider implements FieldComponentProvider {
+
+	public StringFieldProvider(LanguageProvider languageProvider) {
+		super(languageProvider);
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
 	public boolean supports(Class<?> targetType) {
@@ -13,9 +18,8 @@ public class StringFieldProvider implements FieldComponentProvider {
 	}
 
 	@Override
-	public JComponent create(FieldMeta meta) {
+	public JComponent create(Class<?> clazz) {
 		JTextField tf = new JTextField(15);
-		tf.setName(meta.getField().getName());
 		return tf;
 	}
 

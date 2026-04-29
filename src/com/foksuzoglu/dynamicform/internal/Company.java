@@ -58,7 +58,7 @@ public class Company {
 	public String toString() {
 		return "Company [name=" + name + ", department=" + department + ", title=" + title + ", startYear=" + startYear
 				+ ", employeeId=" + employeeId + ", level=" + level + ", office=" + office + ", extension=" + extension
-				+ ", active=" + active + ", bonus=" + bonus + "]";
+				+ ", active=" + active + ", bonus=" + bonus + ", \nCompany.workers=" + workers.toString() + "]";
 	}
 
 }

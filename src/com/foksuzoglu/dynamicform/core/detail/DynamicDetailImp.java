@@ -20,7 +20,7 @@ import com.foksuzoglu.dynamicform.model.FieldMeta;
 import com.foksuzoglu.dynamicform.validation.ValidationMessageResolver;
 import com.foksuzoglu.dynamicform.validation.ValidationResult;
 
-class DynamicDetailImpl2<T> implements IDynamicDetail<T> {
+class DynamicDetailImpl<T> implements IDynamicDetail<T> {
 	public enum FormMode {
 		EDIT, READ_ONLY
 	}
@@ -36,7 +36,7 @@ class DynamicDetailImpl2<T> implements IDynamicDetail<T> {
 	private List<FieldMeta> metas;
 	private PanelBuilderUtil builderUtil;
 
-	public DynamicDetailImpl2(Class<T> clazz, FormMode mode, LanguageProvider languageProvider,
+	public DynamicDetailImpl(Class<T> clazz, FormMode mode, LanguageProvider languageProvider,
 			ValidationMessageResolver validationResolver) {
 
 		this.initialMode = mode;
@@ -66,7 +66,7 @@ class DynamicDetailImpl2<T> implements IDynamicDetail<T> {
 	private void buildForm() {
 		// Row + Col sıralama (garanti)
 
-		builderUtil.buildPane(getPanel(), metas);
+		builderUtil.buildPane(getPanel(), clazz);
 		builderUtil.applyEditableState(fieldComponentMap, editable);
 		getPanel().revalidate();
 		getPanel().repaint();

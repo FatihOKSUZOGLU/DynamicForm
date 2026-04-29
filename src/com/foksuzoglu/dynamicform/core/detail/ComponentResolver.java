@@ -33,7 +33,7 @@ public class ComponentResolver {
 
 		FieldMeta meta = new FieldMeta(field, field.getName(), 0, 0);
 
-		JComponent created = provider.create(meta);
+		JComponent created = provider.create(meta.getField().getType());
 
 		fieldMap.put(field, created);
 

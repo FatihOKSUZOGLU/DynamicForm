@@ -15,7 +15,7 @@ public class ComponentValueAccessor {
 		try {
 
 			// 🔥 1. COMPONENT bazlı oku (textfield, checkbox vs)
-			FieldComponentProvider provider = ProviderRegistry.find(targetType);
+			FieldComponentProvider provider = ProviderRegistry.getINSTANCE().find(targetType);
 
 			if (provider != null && ReflectionUtil.isSimpleType(targetType)) {
 				return provider.getValue(comp, targetType);
@@ -69,7 +69,7 @@ public class ComponentValueAccessor {
 				// 🔥 SIMPLE TYPE → provider ile al
 				if (ReflectionUtil.isSimpleType(fieldType)) {
 
-					FieldComponentProvider provider = ProviderRegistry.find(fieldType);
+					FieldComponentProvider provider = ProviderRegistry.getINSTANCE().find(fieldType);
 
 					if (provider != null) {
 						Object value = provider.getValue(jc, fieldType);
@@ -97,7 +97,7 @@ public class ComponentValueAccessor {
 		try {
 
 			// 🔥 1. SIMPLE COMPONENT → provider ile set
-			FieldComponentProvider provider = ProviderRegistry.find(field.getType());
+			FieldComponentProvider provider = ProviderRegistry.getINSTANCE().find(field.getType());
 
 			if (provider != null && value != null && ReflectionUtil.isSimpleType(value.getClass())) {
 
@@ -152,7 +152,7 @@ public class ComponentValueAccessor {
 				// 🔥 SIMPLE TYPE → provider ile set
 				if (ReflectionUtil.isSimpleType(fieldType)) {
 
-					FieldComponentProvider provider = ProviderRegistry.find(fieldType);
+					FieldComponentProvider provider = ProviderRegistry.getINSTANCE().find(fieldType);
 
 					if (provider != null) {
 						provider.setValue(jc, fieldValue);

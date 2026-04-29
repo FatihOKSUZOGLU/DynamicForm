@@ -23,7 +23,7 @@ public class RowPanel extends JPanel {
 	private void initGUI() {
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 0, 0, 0 };
-		gridBagLayout.rowHeights = new int[] { 0 };
+		gridBagLayout.rowHeights = new int[] { 30 };
 		gridBagLayout.columnWeights = new double[] { 1.0, 0.0, Double.MIN_VALUE };
 		gridBagLayout.rowWeights = new double[] { 1.0 };
 		setLayout(gridBagLayout);

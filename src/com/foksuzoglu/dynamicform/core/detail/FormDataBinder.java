@@ -2,6 +2,7 @@ package com.foksuzoglu.dynamicform.core.detail;
 
 import java.awt.Component;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +58,7 @@ public class FormDataBinder {
 
 						for (Object item : list) {
 
-							RowPanel itemPanel = builderUtil.createListItemPanel(metaFromField(field));
+							RowPanel itemPanel = builderUtil.createRowPanel(metaFromField(field));
 
 							// 🔥 SIMPLE TYPE
 							if (ReflectionUtil.isSimpleType(genericType)) {
@@ -75,14 +76,7 @@ public class FormDataBinder {
 								bindObjectToPanel(item, itemPanel, fieldMap, builderUtil);
 							}
 
-							JPanel wrapper = new JPanel();
-							wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
-
-							wrapper.add(itemPanel);
-							wrapper.add(Box.createVerticalStrut(5));
-							wrapper.add(new JSeparator());
-
-							listPanel.add(wrapper);
+							listPanel.add(itemPanel);
 						}
 
 						listPanel.revalidate();
@@ -291,14 +285,33 @@ public class FormDataBinder {
 			try {
 
 				JComponent comp = fieldMap.get(field);
-				if (comp == null || ReflectionUtil.isListType(field.getType())) {
+				if (comp == null) {
 					continue;
 				}
 
-				Object value = ComponentValueAccessor.getValue(comp, field.getType());
+				// 🔥 SIMPLE
+				if (ReflectionUtil.isSimpleType(field.getType())) {
 
-				if (value != null) {
+					Object value = ComponentValueAccessor.getValue(comp, field.getType());
 					field.set(obj, value);
+				}
+
+				// 🔥 LIST
+				else if (ReflectionUtil.isListType(field.getType())) {
+
+//					List<?> list = extractList((ListPanel) comp, ReflectionUtil.getListGenericType(field));
+//
+//					field.set(obj, list);
+				}
+
+				// 🔥 NESTED OBJECT
+				else {
+
+					Object nested = field.getType().getDeclaredConstructor().newInstance();
+
+					extract(nested, fieldMap); // 🔥 recursion
+
+					field.set(obj, nested);
 				}
 
 			} catch (Exception e) {
@@ -306,4 +319,105 @@ public class FormDataBinder {
 			}
 		}
 	}
+
+	public static <T> List<T> extractList(ListPanel panel, Class<T> clazz) {
+
+		List<T> result = new ArrayList<>();
+
+		for (Component wrapper : panel.getPanelList().getComponents()) {
+
+			if (!(wrapper instanceof JPanel)) {
+				continue;
+			}
+
+			JPanel w = (JPanel) wrapper;
+
+			for (Component comp : w.getComponents()) {
+
+				if (comp instanceof RowPanel) {
+
+					RowPanel row = (RowPanel) comp;
+
+					try {
+
+						// 🔥 SIMPLE LIST
+						if (ReflectionUtil.isSimpleType(clazz)) {
+
+							JComponent c = row.getLocalMap().values().iterator().next();
+
+							Object val = ComponentValueAccessor.getValue(c, clazz);
+
+							result.add((T) val);
+						}
+
+						// 🔥 OBJECT LIST
+						else {
+
+							T obj = clazz.getDeclaredConstructor().newInstance();
+
+							for (Map.Entry<Field, JComponent> entry : row.getLocalMap().entrySet()) {
+
+								Field field = entry.getKey();
+								JComponent component = entry.getValue();
+
+								field.setAccessible(true);
+
+								if (ReflectionUtil.isSimpleType(field.getType())) {
+
+									Object value = ComponentValueAccessor.getValue(component, field.getType());
+									field.set(obj, value);
+
+								} else if (ReflectionUtil.isListType(field.getType())) {
+
+									List<?> subList = extractList((ListPanel) component,
+											ReflectionUtil.getListGenericType(field));
+
+									field.set(obj, subList);
+								} else {
+
+									// 🔥 nested object recursive
+									Object nested = extractNestedObject(field.getType(), row.getLocalMap());
+
+									field.set(obj, nested);
+								}
+							}
+
+							result.add(obj);
+						}
+
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	private static Object extractNestedObject(Class<?> clazz, Map<Field, JComponent> map) {
+
+		try {
+			Object obj = clazz.getDeclaredConstructor().newInstance();
+
+			for (Map.Entry<Field, JComponent> entry : map.entrySet()) {
+
+				Field field = entry.getKey();
+				JComponent comp = entry.getValue();
+
+				field.setAccessible(true);
+
+				if (ReflectionUtil.isSimpleType(field.getType())) {
+
+					field.set(obj, ComponentValueAccessor.getValue(comp, field.getType()));
+				}
+			}
+
+			return obj;
+
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 }

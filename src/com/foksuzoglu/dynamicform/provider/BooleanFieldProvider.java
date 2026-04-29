@@ -3,9 +3,14 @@ package com.foksuzoglu.dynamicform.provider;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 
-import com.foksuzoglu.dynamicform.model.FieldMeta;
+import com.foksuzoglu.dynamicform.api.LanguageProvider;
 
-public class BooleanFieldProvider implements FieldComponentProvider {
+public class BooleanFieldProvider extends MainProvider implements FieldComponentProvider {
+
+	public BooleanFieldProvider(LanguageProvider languageProvider) {
+		super(languageProvider);
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
 	public boolean supports(Class<?> type) {
@@ -13,9 +18,8 @@ public class BooleanFieldProvider implements FieldComponentProvider {
 	}
 
 	@Override
-	public JComponent create(FieldMeta meta) {
+	public JComponent create(Class<?> clazz) {
 		JCheckBox cb = new JCheckBox();
-		cb.setName(meta.getField().getName());
 		return cb;
 	}
 

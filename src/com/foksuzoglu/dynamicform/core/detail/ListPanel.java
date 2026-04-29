@@ -4,6 +4,8 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -25,8 +27,20 @@ public class ListPanel extends JPanel {
 		this.genericType = type;
 	}
 
+	private Map<Object, JComponent> localMap = new HashMap<>();
+
+	public Map<Object, JComponent> getLocalMap() {
+		return localMap;
+	}
+
 	public Class<?> getGenericType() {
 		return genericType;
+	}
+
+	public ListPanel(Class<?> genericType) {
+		setPreferredSize(new Dimension(400, 50));
+		this.genericType = genericType;
+		initGUI();
 	}
 
 	public ListPanel(String title, Class<?> genericType) {

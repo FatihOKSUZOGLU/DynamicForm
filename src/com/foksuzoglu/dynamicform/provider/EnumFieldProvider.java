@@ -3,9 +3,14 @@ package com.foksuzoglu.dynamicform.provider;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 
-import com.foksuzoglu.dynamicform.model.FieldMeta;
+import com.foksuzoglu.dynamicform.api.LanguageProvider;
 
-public class EnumFieldProvider implements FieldComponentProvider {
+public class EnumFieldProvider extends MainProvider implements FieldComponentProvider {
+
+	public EnumFieldProvider(LanguageProvider languageProvider) {
+		super(languageProvider);
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
 	public boolean supports(Class<?> type) {
@@ -13,10 +18,8 @@ public class EnumFieldProvider implements FieldComponentProvider {
 	}
 
 	@Override
-	public JComponent create(FieldMeta meta) {
-		Class<?> enumType = meta.getField().getType();
-		JComboBox<Object> combo = new JComboBox<>(enumType.getEnumConstants());
-		combo.setName(meta.getField().getName());
+	public JComponent create(Class<?> clazz) {
+		JComboBox<Object> combo = new JComboBox<>(clazz.getEnumConstants());
 		return combo;
 	}
 
